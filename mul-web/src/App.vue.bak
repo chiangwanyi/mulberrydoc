@@ -1,0 +1,71 @@
+<template>
+    <div id="app">
+        <el-row>
+            <!-- 【导航栏】开始 -->
+            <el-col v-show="visibility.navbar" class="navbar" :md="6" :lg="4" :style="{'height': height}">
+                <Navbar></Navbar>
+            </el-col>
+            <!-- 【导航栏】结束 -->
+            <!-- 【主区域】开始 -->
+            <el-col class="main" id="main" :md="mainSize.md" :lg="mainSize.lg" :style="{'height': height}">
+                <Header v-show="visibility.header" :user="user"></Header>
+                <router-view></router-view>
+            </el-col>
+            <!-- 【主区域】结束 -->
+        </el-row>
+    </div>
+</template>
+
+<script>
+    import Navbar from "./views/Navbar";
+    import Header from "./views/Header";
+
+    export default {
+        name: "App",
+        data() {
+            return {
+                height: `${document.documentElement.clientHeight}px`,
+                user: null,
+                visibility: {
+                    navbar: true,
+                    header: true,
+                },
+                mainSize: {
+                    md: 18,
+                    lg: 20,
+                }
+            }
+        },
+        methods: {
+            hideNavbar() {
+                this.visibility.navbar = false;
+                this.visibility.header = false;
+                this.mainSize.md = 24;
+                this.mainSize.lg = 24;
+            },
+            showNavbar() {
+                this.visibility.navbar = true;
+                this.visibility.header = true;
+                this.mainSize.md = 18;
+                this.mainSize.lg = 20;
+            }
+        },
+        components: {
+            Header,
+            Navbar,
+        }
+    }
+</script>
+
+<style lang="scss">
+    // 导航栏
+    .navbar {
+        background-color: rgb(248, 249, 250);
+    }
+
+    // 主区域
+    .main {
+        padding: 10px;
+        overflow-y: scroll;
+    }
+</style>

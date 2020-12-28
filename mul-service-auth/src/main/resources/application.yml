@@ -1,0 +1,21 @@
+server:
+    port: ${MUL_PORT}
+
+spring:
+    application:
+        name: mulberrydoc-mul-service-auth
+
+eureka:
+    client:
+        service-url:
+            register-with-eureka: true
+            fetch-registry: true
+            defaultZone: http://localhost:9001/eureka,http://localhost:9002/eureka
+    instance:
+        instance-id: mul-service-auth-${MUL_PORT}
+
+management:
+    endpoints:
+        web:
+            exposure:
+                include: '*'

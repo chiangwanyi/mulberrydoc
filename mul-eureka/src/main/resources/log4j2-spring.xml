@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration monitorInterval="5">
+    <!--日志级别以及优先级排序: OFF > FATAL > ERROR > WARN > INFO > DEBUG > TRACE > ALL -->
+    <Properties>
+        <!--  %date{yyyy-MM-dd HH:mm:ss.SSS}：日志产生时间  -->
+        <!--  %-5level：输出日志级别，-5表示左对齐并且固定输出5个字符，如果不足在右边补0  -->
+        <!--  %c：Logger名称  -->
+        <!--  %t：当前线程名称  -->
+        <!--  %r：从程序启动时到记录该条日志时已经经过的毫秒数  -->
+        <!--  %l：日志事件的发生位置，包括类目名、发生的线程，以及在代码中的行数  -->
+        <!--  %m：显示输出消息  -->
+        <!--  %n：当前平台下的换行符  -->
+        <property name="LOG_PATTERN" value="%date{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%c] - [%t:%r] %l - %m%n"/>
+    </Properties>
+
+    <appenders>
+        <!--  Console Logger  -->
+        <console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
+        </console>
+        <!--  File Logger  -->
+        <RollingFile name="RollingFile"
+                     fileName="${env:MUL_ROOT}/logs/${env:MUL_NAME}_${env:MUL_PORT}/all.log"
+                     filePattern="${env:MUL_ROOT}/logs/${env:MUL_NAME}_${env:MUL_PORT}/backup/$${date:yyyy-MM-dd}/backup-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="15"/>
+        </RollingFile>
+    </appenders>
+
+    <loggers>
+        <root level="all" additivity="false">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="RollingFile"/>
+        </root>
+    </loggers>
+
+</configuration>

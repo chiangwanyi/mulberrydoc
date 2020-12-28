@@ -1,0 +1,22 @@
+server:
+    port: ${MUL_PORT}
+
+spring:
+    application:
+            name: mulberrydoc-${MUL_NAME}
+
+eureka:
+    instance:
+        instance-id: ${MUL_NAME}-${MUL_PORT}
+        prefer-ip-address: true
+        #eureka客户端需要多长时间发送心跳给eureka服务器，表明他仍然活着，默认30秒
+        lease-renewal-interval-in-seconds: 2
+        #eureka服务器在接受到实力的最后一次发出的心跳后，需要等待多久才可以将此实例删除
+        lease-expiration-duration-in-seconds: 2
+    client:
+        #表示eureka client间隔多久去拉取服务器注册信息,默认为30秒
+        registry-fetch-interval-seconds: 5
+        service-url:
+            register-with-eureka: true
+            fetch-registry: true
+            defaultZone: ${MUL_DEFAULTZONE}
