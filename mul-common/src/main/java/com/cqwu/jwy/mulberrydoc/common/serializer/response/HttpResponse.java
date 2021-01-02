@@ -20,10 +20,11 @@ public class HttpResponse
     /** 数据 */
     private Object data;
     /** 服务信息 */
-    private final Set<Object> instances = new HashSet<>();
+    private Set<Object> instances;
 
     public HttpResponse()
     {
+        this.instances = new HashSet<>();
     }
 
     public HttpResponse status(int status)
@@ -87,6 +88,26 @@ public class HttpResponse
     public Set<Object> getInstances()
     {
         return instances;
+    }
+
+    public void setStatus(int status)
+    {
+        this.status = status;
+    }
+
+    public void setMsg(Object msg)
+    {
+        this.msg = msg;
+    }
+
+    public void setData(Object data)
+    {
+        this.data = data;
+    }
+
+    public void setInstances(Set<Object> instances)
+    {
+        this.instances = instances;
     }
 
     @Override

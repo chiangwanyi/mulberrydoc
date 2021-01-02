@@ -41,7 +41,7 @@ eureka:
         lease-expiration-duration-in-seconds: 10
     client:
         #表示eureka client间隔多久去拉取服务器注册信息,默认为30秒
-        registry-fetch-interval-seconds: 10
+        registry-fetch-interval-seconds: 5
         service-url:
             register-with-eureka: true
             fetch-registry: true

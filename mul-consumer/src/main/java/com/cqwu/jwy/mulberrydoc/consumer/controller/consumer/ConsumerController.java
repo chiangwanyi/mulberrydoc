@@ -21,9 +21,7 @@ public class ConsumerController
     @GetMapping("/ping")
     public Object ping()
     {
-        return HttpSerializer.success()
-                .status(HttpSerializer.STATUS_OK)
-                .msg(ServiceConst.PONG)
-                .instances(instance.getInstanceId());
+        return HttpSerializer.success(instance.getInstanceId())
+                .msg(ServiceConst.PONG);
     }
 }

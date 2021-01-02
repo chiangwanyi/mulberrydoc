@@ -1,6 +1,5 @@
 package com.cqwu.jwy.mulberrydoc.consumer.util;
 
-import com.cqwu.jwy.mulberrydoc.common.constant.CommonError;
 import com.cqwu.jwy.mulberrydoc.common.serializer.HttpSerializer;
 import com.cqwu.jwy.mulberrydoc.common.serializer.response.HttpResponse;
 import com.cqwu.jwy.mulberrydoc.consumer.configure.Instance;
@@ -17,11 +16,9 @@ public final class ResponseUtil
     {
         if (Objects.nonNull(response))
         {
+            // 附加自己的实例ID
             return response.instances(instance.getInstanceId());
         }
-        return HttpSerializer.failure()
-                .status(HttpSerializer.INTERNAL_SERVER_ERROR)
-                .msg(CommonError.INTERNAL_ERROR)
-                .instances(instance.getInstanceId());
+        return HttpSerializer.internalError(instance.getInstanceId(), null);
     }
 }

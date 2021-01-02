@@ -16,6 +16,9 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * 用户服务类
+ */
 @Service
 public class UserService
 {
@@ -26,6 +29,7 @@ public class UserService
     private SecretUtil secretUtil;
     @Autowired
     private IdUtil idUtil;
+
     /** 重复出现的用户名 */
     private final Set<String> duplicateUsername = new HashSet<>();
 
