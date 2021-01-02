@@ -1,20 +1,24 @@
-package com.cqwu.jwy.mulberrydoc.common.constant;
+package com.cqwu.jwy.mulberrydoc.auth.constant;
 
 import com.cqwu.jwy.mulberrydoc.common.exception.ErrorMsg;
 
-public enum CommonError implements ErrorMsg
+public enum AuthError implements ErrorMsg
 {
     /***/
-    INCOMPLETE_PARAMETERS(1, "参数不完整"),
+    USERNAME_CONFLICT(1, "该用户名已被注册"),
     /***/
-    INVALID_PARAMETERS(2, "参数格式错误"),
+    LOGIN_FAILED(2, "用户名或密码错误"),
     /***/
-    INTERNAL_ERROR(3, "内部错误");
+    REGISTER_FAILED(3, "注册时发生异常"),
+    /***/
+    REQUIRE_LOGIN(4, "请登录后重试"),
+    /***/
+    USER_NOT_FOUND(5, "用户不存在");
 
     private final Integer code;
     private final String message;
 
-    CommonError(Integer code, String message)
+    AuthError(Integer code, String message)
     {
         this.code = code;
         this.message = message;

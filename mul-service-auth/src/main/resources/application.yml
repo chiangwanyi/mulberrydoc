@@ -3,16 +3,49 @@ server:
 
 spring:
     application:
-        name: mulberrydoc-mul-service-auth
+        name: mulberrydoc-${MUL_NAME}
+    redis:
+        database: 0
+        host: localhost
+        port: 6379
+        timeout: 1000
+        lettuce:
+            pool:
+                max-active: 8
+                max-wait: -1
+                max-idle: 8
+                min-idle: 0
+    data:
+        mongodb:
+            uri: mongodb://localhost:27017/mulberry_doc
+    datasource:
+        username: root
+        password: 123456
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/mulberry_doc?useSSL=false&useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+        type: com.alibaba.druid.pool.DruidDataSource
+
+auth:
+    session:
+        path: /                     # Session 路径
+        session-name: SESSDATA      # Cookie Name
+        max-age: 604800             # 7 * 24 小时
+    cache:
+        session-name: session
+        next-uid-name: next_uid
+        default-uid: 0
+    secret:
+        password-salt: chiangwanyi@163.com
 
 eureka:
+    instance:
+        instance-id: ${MUL_NAME}-${MUL_PORT}
+        prefer-ip-address: true
     client:
         service-url:
             register-with-eureka: true
             fetch-registry: true
-            defaultZone: http://localhost:9001/eureka,http://localhost:9002/eureka
-    instance:
-        instance-id: mul-service-auth-${MUL_PORT}
+            defaultZone: ${MUL_DEFAULTZONE}
 
 management:
     endpoints:

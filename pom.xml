@@ -22,6 +22,11 @@
         <mulberrydoc.version>1.0.1</mulberrydoc.version>
         <spring.boot.version>2.2.2.RELEASE</spring.boot.version>
         <spring.cloud.version>Hoxton.SR1</spring.cloud.version>
+        <mysql.version>8.0.15</mysql.version>
+        <commons-pool2.version>2.6.2</commons-pool2.version>
+        <commons-codec.version>1.14</commons-codec.version>
+        <mybatis.version>2.1.3</mybatis.version>
+        <druid.version>1.2.1</druid.version>
     </properties>
 
     <dependencyManagement>

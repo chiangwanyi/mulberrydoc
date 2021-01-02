@@ -1,11 +1,11 @@
-package com.cqwu.jwy.mulberrydoc.consumer.configure;
+package com.cqwu.jwy.mulberrydoc.auth.configure;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @ConfigurationProperties(prefix = "eureka.instance")
 @Component
-public class ConsumerConfig
+public class Instance
 {
     private String instanceId;
 

@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS `user`;
+
+CREATE TABLE `user` (
+	`id` VARCHAR (10) COMMENT '用户ID',
+	`username` VARCHAR (20) NOT NULL UNIQUE COMMENT '用户名',
+	`password` VARCHAR (256) NOT NULL COMMENT '用户密码',
+	`created_at` DATETIME NOT NULL COMMENT '创建日期',
+	`updated_at` DATETIME NOT NULL COMMENT '最后修改日期',
+	`deleted_at` DATETIME DEFAULT NULL COMMENT '移除日期',
+	PRIMARY KEY (id)
+) ENGINE = INNODB DEFAULT CHARSET = UTF8;

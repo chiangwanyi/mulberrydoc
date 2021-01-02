@@ -9,9 +9,9 @@ eureka:
     instance:
         hostname: ${MUL_NAME}-${MUL_PORT}
         instance-id: ${MUL_NAME}-${MUL_PORT}
-    server:
-        enable-self-preservation: false
-        eviction-interval-timer-in-ms: 1000
+#    server:
+#        enable-self-preservation: false
+#        eviction-interval-timer-in-ms: 1000
     client:
         register-with-eureka: false         # 不向注册中心注册自己
         fetch-registry: false               # 自己是注册中心
