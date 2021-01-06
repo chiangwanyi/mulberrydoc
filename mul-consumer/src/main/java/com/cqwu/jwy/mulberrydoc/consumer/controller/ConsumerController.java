@@ -1,4 +1,4 @@
-package com.cqwu.jwy.mulberrydoc.consumer.controller.consumer;
+package com.cqwu.jwy.mulberrydoc.consumer.controller;
 
 import com.cqwu.jwy.mulberrydoc.common.constant.ServiceConst;
 import com.cqwu.jwy.mulberrydoc.common.serializer.HttpSerializer;

@@ -1,7 +1,7 @@
 package com.cqwu.jwy.mulberrydoc.auth.pojo;
 
 
-import com.cqwu.jwy.mulberrydoc.common.validator.annotation.Rule;
+import com.cqwu.jwy.mulberrydoc.common.validator.Rule;
 
 import java.io.Serializable;
 import java.util.Date;

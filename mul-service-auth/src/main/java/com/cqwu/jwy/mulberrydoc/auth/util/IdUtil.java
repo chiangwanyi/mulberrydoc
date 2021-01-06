@@ -47,7 +47,7 @@ public class IdUtil
      * @param sessionValue Session Value
      * @return UserId
      */
-    public String getUserId(String sessionValue)
+    public String getUserIdBySessionValue(String sessionValue)
     {
         if (StringUtils.isEmpty(sessionValue))
         {

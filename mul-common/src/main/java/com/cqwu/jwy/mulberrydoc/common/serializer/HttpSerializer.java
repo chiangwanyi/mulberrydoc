@@ -41,7 +41,7 @@ public final class HttpSerializer
      *
      * @return HttpResponse
      */
-    public static HttpResponse success()
+    private static HttpResponse success()
     {
         return response();
     }
@@ -64,7 +64,7 @@ public final class HttpSerializer
      *
      * @return HttpResponse
      */
-    public static HttpResponse failure()
+    private static HttpResponse failure()
     {
         return response();
     }

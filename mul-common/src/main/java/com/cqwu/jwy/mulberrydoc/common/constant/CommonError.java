@@ -9,8 +9,9 @@ public enum CommonError implements ErrorMsg
     /***/
     INVALID_PARAMETERS(2, "参数格式错误"),
     /***/
-    INTERNAL_ERROR(3, "内部错误");
-
+    VERIFICATION_FAILED(3, "无权限"),
+    /***/
+    INTERNAL_ERROR(4, "内部错误");
     private final Integer code;
     private final String message;
 

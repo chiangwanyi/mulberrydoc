@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 统一服务返回类
+ * HTTP Response
  */
 public class HttpResponse
 {

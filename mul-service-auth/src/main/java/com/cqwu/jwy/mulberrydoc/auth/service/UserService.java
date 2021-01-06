@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -62,5 +63,20 @@ public class UserService
         user.setPassword(secretUtil.generatePassword(user.getPassword(), user.getUsername()));
         userDao.insert(user);
         return user;
+    }
+
+    /**
+     * 通过 用户ID 查询用户
+     *
+     * @param id 用户ID
+     * @return 结果
+     */
+    public User queryUserById(String id)
+    {
+        if (StringUtils.isEmpty(id))
+        {
+            return null;
+        }
+        return userDao.queryUserById(id);
     }
 }

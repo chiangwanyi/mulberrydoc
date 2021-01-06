@@ -1,7 +1,8 @@
-package com.cqwu.jwy.mulberrydoc.consumer.Interceptor;
+package com.cqwu.jwy.mulberrydoc.consumer.configure;
 
 import com.cqwu.jwy.mulberrydoc.common.util.RemoteConnector;
 import com.cqwu.jwy.mulberrydoc.consumer.config.SessionConfig;
+import com.cqwu.jwy.mulberrydoc.consumer.interceptor.AuthInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
@@ -19,6 +20,8 @@ public class MyWebMvcConfigurator extends WebMvcConfigurationSupport
     private SessionConfig sessionConfig;
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private Instance instance;
     private RemoteConnector remote;
 
     @PostConstruct
@@ -41,7 +44,7 @@ public class MyWebMvcConfigurator extends WebMvcConfigurationSupport
     public void addInterceptors(InterceptorRegistry registry)
     {
         InterceptorRegistration interceptorRegistration = registry
-                .addInterceptor(new AuthInterceptor(sessionConfig, remote));
+                .addInterceptor(new AuthInterceptor(sessionConfig, remote, instance));
         interceptorRegistration.addPathPatterns("/**");
     }
 }

@@ -1,4 +1,4 @@
-package com.cqwu.jwy.mulberrydoc.common.validator.annotation;
+package com.cqwu.jwy.mulberrydoc.common.validator;
 
 import java.lang.annotation.*;
 

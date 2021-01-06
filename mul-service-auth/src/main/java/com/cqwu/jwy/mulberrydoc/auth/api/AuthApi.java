@@ -1,18 +1,17 @@
 package com.cqwu.jwy.mulberrydoc.auth.api;
 
-import com.cqwu.jwy.mulberrydoc.auth.AuthServer;
 import com.cqwu.jwy.mulberrydoc.auth.configure.Instance;
 import com.cqwu.jwy.mulberrydoc.auth.constant.AuthConstant;
 import com.cqwu.jwy.mulberrydoc.auth.constant.AuthError;
 import com.cqwu.jwy.mulberrydoc.auth.pojo.User;
-import com.cqwu.jwy.mulberrydoc.auth.serializer.UserSerializer;
 import com.cqwu.jwy.mulberrydoc.auth.service.AuthService;
 import com.cqwu.jwy.mulberrydoc.auth.service.UserService;
-import com.cqwu.jwy.mulberrydoc.common.constant.CommonError;
+import com.cqwu.jwy.mulberrydoc.auth.util.IdUtil;
 import com.cqwu.jwy.mulberrydoc.common.constant.ServiceConst;
 import com.cqwu.jwy.mulberrydoc.common.exception.WebException;
 import com.cqwu.jwy.mulberrydoc.common.serializer.HttpSerializer;
 import com.cqwu.jwy.mulberrydoc.common.serializer.response.HttpResponse;
+import com.cqwu.jwy.mulberrydoc.common.serializer.response.JsonResponse;
 import com.cqwu.jwy.mulberrydoc.common.util.PojoGenerator;
 import com.cqwu.jwy.mulberrydoc.common.validator.Validator;
 import org.slf4j.Logger;
@@ -25,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.Cookie;
+import javax.validation.constraints.NotNull;
 import java.util.*;
 
 @RestController
@@ -38,6 +38,8 @@ public class AuthApi
     private UserService userService;
     @Autowired
     private AuthService authService;
+    @Autowired
+    private IdUtil idUtil;
 
     /**
      * 返回程序运行状态
@@ -101,15 +103,15 @@ public class AuthApi
      * @return 结果
      */
     @PostMapping("login")
-    public Map login(@RequestBody Map<String, Object> obj)
+    public JsonResponse login(@RequestBody Map<String, Object> obj)
     {
-        Map<String, Object> res = new HashMap<>();
+        JsonResponse response = new JsonResponse();
         User info = PojoGenerator.generate(obj, User.class);
         // 转换用户注册信息失败
         if (Objects.isNull(info) || StringUtils.isEmpty(info.getUsername()) || StringUtils.isEmpty(info.getPassword()))
         {
             LOG.warn("转换用户登录信息失败，info:{}", info);
-            res.put(HttpSerializer.HTTP_RESPONSE_KEY, HttpSerializer.incompleteParamsFailed(instance.getInstanceId()));
+            response.data(HttpSerializer.HTTP_RESPONSE_KEY, HttpSerializer.incompleteParamsFailed(instance.getInstanceId()));
         }
         else
         {
@@ -118,19 +120,54 @@ public class AuthApi
             // 登录成功
             if (Objects.nonNull(cookie))
             {
-                res.put(HttpSerializer.COOKIES_KEY, Collections.singletonList(cookie));
-                res.put(HttpSerializer.HTTP_RESPONSE_KEY, HttpSerializer
-                        .success(instance.getInstanceId())
-                        .msg(AuthConstant.LOGIN_SUCCESS));
+                response.data(HttpSerializer.COOKIES_KEY, Collections.singletonList(cookie));
+                response.data(HttpSerializer.HTTP_RESPONSE_KEY,
+                              HttpSerializer
+                                      .success(instance.getInstanceId())
+                                      .msg(AuthConstant.LOGIN_SUCCESS));
             }
             // 登录失败
             else
             {
-                res.put(HttpSerializer.HTTP_RESPONSE_KEY, HttpSerializer
-                        .failure(instance.getInstanceId(), HttpSerializer.STATUS_BAD_REQUEST)
-                        .msg(AuthError.LOGIN_FAILED));
+                response.data(HttpSerializer.HTTP_RESPONSE_KEY,
+                              HttpSerializer
+                                      .failure(instance.getInstanceId(), HttpSerializer.STATUS_BAD_REQUEST)
+                                      .msg(AuthError.LOGIN_FAILED));
             }
         }
-        return res;
+        return response;
+    }
+
+    /**
+     * 判断用户是否已经登录
+     *
+     * @param sessionValue Session Value
+     * @return 结果
+     */
+    @PostMapping("isLogin")
+    public HttpResponse isLogin(@RequestBody String sessionValue)
+    {
+        if (StringUtils.isEmpty(sessionValue) || Objects.isNull(idUtil.getUserIdBySessionValue(sessionValue)))
+        {
+            return HttpSerializer
+                    .failure(instance.getInstanceId(), HttpSerializer.STATUS_FORBIDDEN_FAILED)
+                    .msg(AuthError.VERIFICATION_FAILED);
+        }
+        return HttpSerializer.success(instance.getInstanceId());
+    }
+
+    /**
+     * 查询用户信息
+     *
+     * @param sessionValue SessionValue
+     * @return 结果
+     */
+    @PostMapping("profile")
+    public HttpResponse profile(@RequestBody @NotNull String sessionValue)
+    {
+        String userId = idUtil.getUserIdBySessionValue(sessionValue);
+        User user = userService.queryUserById(userId);
+        return HttpSerializer.success(instance.getInstanceId())
+                .data(user);
     }
 }

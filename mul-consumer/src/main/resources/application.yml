@@ -5,6 +5,12 @@ spring:
     application:
             name: mulberrydoc-${MUL_NAME}
 
+auth:
+    session:
+        path: /                     # Session 路径
+        session-name: SESSDATA      # Cookie Name
+        max-age: 604800             # 7 * 24 小时
+
 eureka:
     instance:
         instance-id: ${MUL_NAME}-${MUL_PORT}

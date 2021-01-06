@@ -13,7 +13,9 @@ public enum AuthError implements ErrorMsg
     /***/
     REQUIRE_LOGIN(4, "请登录后重试"),
     /***/
-    USER_NOT_FOUND(5, "用户不存在");
+    VERIFICATION_FAILED(5, "无权限"),
+    /***/
+    USER_NOT_FOUND(6, "用户不存在");
 
     private final Integer code;
     private final String message;

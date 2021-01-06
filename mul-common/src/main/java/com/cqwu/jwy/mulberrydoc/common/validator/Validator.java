@@ -1,7 +1,5 @@
 package com.cqwu.jwy.mulberrydoc.common.validator;
 
-import com.cqwu.jwy.mulberrydoc.common.validator.annotation.Rule;
-
 import java.lang.reflect.Field;
 import java.util.*;
 

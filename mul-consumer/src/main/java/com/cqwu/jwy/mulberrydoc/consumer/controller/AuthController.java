@@ -1,11 +1,15 @@
-package com.cqwu.jwy.mulberrydoc.consumer.controller.auth;
+package com.cqwu.jwy.mulberrydoc.consumer.controller;
 
 import com.cqwu.jwy.mulberrydoc.common.constant.ServiceConst;
 import com.cqwu.jwy.mulberrydoc.common.serializer.CookieSerializer;
 import com.cqwu.jwy.mulberrydoc.common.serializer.HttpSerializer;
 import com.cqwu.jwy.mulberrydoc.common.serializer.response.HttpResponse;
+import com.cqwu.jwy.mulberrydoc.common.serializer.response.JsonResponse;
+import com.cqwu.jwy.mulberrydoc.common.util.CookieUtil;
 import com.cqwu.jwy.mulberrydoc.common.util.RemoteConnector;
+import com.cqwu.jwy.mulberrydoc.consumer.config.SessionConfig;
 import com.cqwu.jwy.mulberrydoc.consumer.configure.Instance;
+import com.cqwu.jwy.mulberrydoc.consumer.interceptor.RequireLogin;
 import com.cqwu.jwy.mulberrydoc.consumer.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 import java.util.Objects;
@@ -26,6 +31,8 @@ import java.util.Objects;
 public class AuthController
 {
     private static final Logger LOG = LoggerFactory.getLogger(AuthController.class);
+    @Autowired
+    private SessionConfig sessionConfig;
     @Autowired
     private Instance instance;
     @Autowired
@@ -72,20 +79,20 @@ public class AuthController
     @PostMapping("/auth/login")
     public Object login(@RequestBody Object obj, HttpServletResponse servletResponse)
     {
-        Map res = remote.post(ServiceConst.AUTH_SERVICE, "login", obj, Map.class);
-        if (Objects.isNull(res) || res.isEmpty())
+        JsonResponse res = remote.post(ServiceConst.AUTH_SERVICE, "login", obj, JsonResponse.class);
+        if (Objects.isNull(res) || Objects.isNull(res.getData()))
         {
             LOG.warn("登录后无返回结果");
             return HttpSerializer.internalError(instance.getInstanceId(), null);
         }
         try
         {
-            HttpResponse response = HttpSerializer.convert(res.get(HttpSerializer.HTTP_RESPONSE_KEY));
+            HttpResponse response = HttpSerializer.convert(res.getData().get(HttpSerializer.HTTP_RESPONSE_KEY));
             // 登录成功
             if (Objects.nonNull(response) && Objects.equals(response.getStatus(), HttpSerializer.STATUS_OK))
             {
                 // 保存登录信息
-                Cookie[] cookies = CookieSerializer.convert(res.get(HttpSerializer.COOKIES_KEY));
+                Cookie[] cookies = CookieSerializer.convert(res.getData().get(HttpSerializer.COOKIES_KEY));
                 if (Objects.nonNull(cookies) && cookies.length != 0)
                 {
                     for (Cookie cookie : cookies)
@@ -107,5 +114,19 @@ public class AuthController
             LOG.error("登录失败，error:", e);
             return HttpSerializer.internalError(instance.getInstanceId(), e);
         }
+    }
+
+    /**
+     * 获取用户信息
+     *
+     * @return 结果
+     */
+    @RequireLogin
+    @GetMapping("/auth/profile")
+    public Object profile(HttpServletRequest request)
+    {
+        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
+        HttpResponse res = remote.post(ServiceConst.AUTH_SERVICE, "profile", sessionValue);
+        return ResponseUtil.response(res, instance);
     }
 }
