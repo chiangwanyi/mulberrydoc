@@ -7,7 +7,9 @@ public enum FolderError implements ErrorMsg
     /***/
     PARENT_FOLDER_NON_EXISTENT(1, "父文件夹不存在"),
     /***/
-    FOLDER_ALREADY_EXISTENT(2, "文件夹已存在");
+    FOLDER_NON_EXISTENT(2, "文件夹不存在"),
+    /***/
+    FOLDER_ALREADY_EXISTENT(3, "文件夹已存在");
 
     private final Integer code;
     private final String message;

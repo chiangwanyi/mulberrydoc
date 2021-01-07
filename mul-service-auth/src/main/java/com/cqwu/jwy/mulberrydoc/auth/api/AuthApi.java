@@ -4,6 +4,7 @@ import com.cqwu.jwy.mulberrydoc.auth.configure.Instance;
 import com.cqwu.jwy.mulberrydoc.auth.constant.AuthConstant;
 import com.cqwu.jwy.mulberrydoc.auth.constant.AuthError;
 import com.cqwu.jwy.mulberrydoc.auth.pojo.User;
+import com.cqwu.jwy.mulberrydoc.auth.serializer.UserSerializer;
 import com.cqwu.jwy.mulberrydoc.auth.service.AuthService;
 import com.cqwu.jwy.mulberrydoc.auth.service.UserService;
 import com.cqwu.jwy.mulberrydoc.auth.util.IdUtil;
@@ -99,7 +100,8 @@ public class AuthApi
         }
         LOG.info("【用户注册】用户注册成功，user：{}", user);
         return HttpSerializer.success(instance.getInstanceId())
-                .msg(AuthConstant.REGISTER_SUCCESS);
+                .msg(AuthConstant.REGISTER_SUCCESS)
+                .data(UserSerializer.serialData(user));
     }
 
     /**
@@ -148,7 +150,7 @@ public class AuthApi
     }
 
     /**
-     * 判断用户是否已经登录
+     * 检查用户登录状态
      *
      * @param sessionValue Session Value
      * @return HttpResponse
@@ -165,6 +167,25 @@ public class AuthApi
                     .msg(AuthError.VERIFICATION_FAILED);
         }
         LOG.info("【检查用户登录状态】已登录");
+        return HttpSerializer.success(instance.getInstanceId());
+    }
+
+    /**
+     * 检查用户是否存在
+     *
+     * @param uid 用户ID
+     * @return Boolean
+     */
+    @PostMapping("isExisted")
+    public HttpResponse isExisted(@RequestBody @NotNull String uid)
+    {
+        LOG.info("【检查用户是否存在】uid:{}", uid);
+        User user = userService.queryUserById(uid);
+        if (Objects.isNull(user))
+        {
+            return HttpSerializer.failure(instance.getInstanceId(), HttpSerializer.STATUS_BAD_REQUEST)
+                    .msg(AuthError.USER_NOT_FOUND);
+        }
         return HttpSerializer.success(instance.getInstanceId());
     }
 

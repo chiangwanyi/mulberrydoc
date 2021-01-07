@@ -17,17 +17,17 @@ public final class UserSerializer
     }
 
     /**
-     * 生成 普通的 用户序列化数据
+     * 生成用户序列化数据
      *
      * @param user 用户对象
      * @return 用户序列获数据
      */
-    public static Map<String, Object> commonSerialData(User user)
+    public static Map<String, Object> serialData(User user)
     {
         Map<String, Object> data = new HashMap<>();
         data.put("id", user.getId());
         data.put("username", user.getUsername());
-        data.put("createdAt", DateUtil.formatDatetime(user.getCreatedAt()));
+        data.put("createdAt", user.getCreatedAt());
         return data;
     }
 }

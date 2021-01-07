@@ -3,10 +3,7 @@ package com.cqwu.jwy.mulberrydoc.common.serializer.response;
 import com.cqwu.jwy.mulberrydoc.common.exception.ErrorMsg;
 import com.cqwu.jwy.mulberrydoc.common.exception.WebException;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * HTTP Response
@@ -67,6 +64,12 @@ public class HttpResponse
     public HttpResponse instances(String instanceId)
     {
         this.instances.add(instanceId);
+        return this;
+    }
+
+    public HttpResponse instances(Collection<Object> instanceIdList)
+    {
+        this.instances.addAll(instanceIdList);
         return this;
     }
 

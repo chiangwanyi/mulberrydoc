@@ -12,5 +12,6 @@ public final class ServiceConst
     public static final String CONSUMER_SERVICE = "MULBERRYDOC-MUL-CONSUMER";
     /** 权限管理 服务名称 */
     public static final String AUTH_SERVICE = "MULBERRYDOC-MUL-SERVICE-AUTH";
-
+    /** 文档空间管理 服务名称 */
+    public static final String DOCUMENTS_SERVICE = "MULBERRYDOC-MUL-SERVICE-DOCUMENTS";
 }

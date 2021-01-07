@@ -2,6 +2,7 @@ package com.cqwu.jwy.mulberrydoc.documents.dao;
 
 import com.cqwu.jwy.mulberrydoc.common.exception.WebException;
 import com.cqwu.jwy.mulberrydoc.documents.constant.DocumentsConstant;
+import com.cqwu.jwy.mulberrydoc.documents.constant.DocumentsError;
 import com.cqwu.jwy.mulberrydoc.documents.constant.FolderError;
 import com.cqwu.jwy.mulberrydoc.documents.pojo.Documents;
 import com.cqwu.jwy.mulberrydoc.documents.pojo.Folder;
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
 @Component
 public class FolderDao
 {
+    @Autowired
+    private DocumentsDao documentsDao;
     @Autowired
     private MongoTemplate mongo;
 
@@ -69,6 +72,11 @@ public class FolderDao
         return folder;
     }
 
+    public Folder updateFolder(String uid, Map<String, Object> info)
+    {
+        return null;
+    }
+
     /**
      * 根据 Hash 获取文件夹
      *
@@ -76,80 +84,42 @@ public class FolderDao
      * @param hash Hash
      * @return 文件夹
      */
-    public Folder queryFolderByHash(String uid, String hash)
+    public Folder queryFolderByHash(String uid, String hash) throws WebException
     {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("uid").is(uid));
-        List<Documents> documentsList = mongo.find(query, Documents.class);
-        if (!CollectionUtils.isEmpty(documentsList))
+        // 查询文档空间
+        Documents documents = documentsDao.queryDocumentsByUserId(uid);
+        if (Objects.nonNull(documents))
         {
-            Documents documents = documentsList.get(0);
             List<Folder> folderList = documents.getFolderList();
-            Optional<Folder> folderOpt = folderList.stream().filter(folder -> folder.getHash().equals(hash)).findFirst();
+            Optional<Folder> folderOpt = folderList.stream()
+                    .filter(folder -> Objects.equals(folder.getHash(), hash))
+                    .findFirst();
             return folderOpt.orElse(null);
         }
-        return null;
+        throw new WebException(DocumentsError.DOCUMENTS_NON_EXISTENT);
     }
 
     /**
      * 查询文件夹的子文件夹
      *
-     * @param uid   用户 ID
-     * @param hash  起始文件夹 Hash
-     * @param depth 查询深度
+     * @param uid        用户ID
+     * @param parentHash 父文件夹 Hash
      * @return 文件夹列表
      */
-    public List<Folder> querySubfolder(String uid, String hash, int depth)
+    public List<Folder> querySubfolder(String uid, String parentHash) throws WebException
     {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("uid").is(uid));
-        List<Documents> documentsList = mongo.find(query, Documents.class);
-        if (!CollectionUtils.isEmpty(documentsList))
+        // 查询文档空间
+        Documents documents = documentsDao.queryDocumentsByUserId(uid);
+        if (Objects.nonNull(documents))
         {
-            Documents documents = documentsList.get(0);
             // 所有文件夹
             List<Folder> allFolders = documents.getFolderList();
-            // 最终要返回的文件列表
-            Set<Folder> result = new HashSet<>();
 
-            Optional<Folder> currentFolderOpt = allFolders
-                    .stream()
-                    .filter(folder -> folder.getHash().equals(hash)).findFirst();
-            // 查找 当前文件夹
-            if (currentFolderOpt.isPresent())
-            {
-                Folder currentFolder = currentFolderOpt.get();
-                // 保存
-                result.add(currentFolder);
-                Set<Folder> folders = new HashSet<>();
-                folders.add(currentFolder);
-                for (int i = 0; i < depth; i++)
-                {
-                    // 遍历
-                    Set<Folder> tmp = new HashSet<>();
-                    for (Folder folder : folders)
-                    {
-                        // 找出当前遍历 文件夹 的子文件夹
-                        tmp.addAll(allFolders
-                                           .stream()
-                                           .filter(f -> Objects.nonNull(f.getParentHash()) && f.getParentHash().equals(folder.getHash()))
-                                           .collect(Collectors.toSet()));
-                    }
-                    // 如果没有找到，则跳出循环
-                    if (tmp.isEmpty())
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        folders.clear();
-                        result.addAll(tmp);
-                        folders.addAll(tmp);
-                    }
-                }
-                return new ArrayList<>(result);
-            }
+            //过滤出所有 parentHash 满足条件的文件夹
+            return allFolders.stream()
+                    .filter(folder -> Objects.equals(folder.getParentHash(), parentHash))
+                    .collect(Collectors.toList());
         }
-        return null;
+        throw new WebException(DocumentsError.DOCUMENTS_NON_EXISTENT);
     }
 }

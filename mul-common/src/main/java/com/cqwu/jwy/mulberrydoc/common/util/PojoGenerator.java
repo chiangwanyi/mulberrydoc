@@ -1,5 +1,8 @@
 package com.cqwu.jwy.mulberrydoc.common.util;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Objects;
@@ -8,6 +11,18 @@ public final class PojoGenerator
 {
     private PojoGenerator()
     {
+    }
+
+    public static <T> T generate(Object obj, Class<T> type)
+    {
+        try
+        {
+            return JSONObject.parseObject(JSONObject.toJSONString(obj), type);
+        }
+        catch (Exception ignore)
+        {
+            return null;
+        }
     }
 
     public static <T> T generate(Map<String, Object> obj, Class<T> type)

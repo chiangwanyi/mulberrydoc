@@ -118,6 +118,18 @@ public final class HttpSerializer
     }
 
     /**
+     * 无操作权限
+     *
+     * @param instanceId 实例ID
+     * @return HttpResponse
+     */
+    public static HttpResponse operationForbiddenFailed(String instanceId)
+    {
+        return HttpSerializer.failure(instanceId, HttpSerializer.STATUS_FORBIDDEN_FAILED)
+                .msg(CommonError.VERIFICATION_FAILED);
+    }
+
+    /**
      * 参数校验错误
      *
      * @param errorInfo  错误信息

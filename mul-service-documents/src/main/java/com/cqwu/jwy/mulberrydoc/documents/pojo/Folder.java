@@ -184,4 +184,21 @@ public class Folder
     {
         this.deletedAt = deletedAt;
     }
+
+    @Override
+    public String toString()
+    {
+        return "Folder{" +
+                "hash='" + hash + '\'' +
+                ", parentHash='" + parentHash + '\'' +
+                ", name='" + name + '\'' +
+                ", path='" + path + '\'' +
+                ", depth=" + depth +
+                ", isFavorite=" + isFavorite +
+                ", fileList=" + fileList +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", deletedAt=" + deletedAt +
+                '}';
+    }
 }

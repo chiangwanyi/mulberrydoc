@@ -8,9 +8,11 @@ public enum DocumentsError implements ErrorMsg
     /***/
     DOCUMENTS_NON_EXISTENT(1, "文档空间不存在"),
     /***/
-    FOLDER_NON_EXISTENT(2, "文档空间中不存在该文件夹"),
+    DOCUMENTS_EXISTENT(2, "文档空间已存在"),
     /***/
-    QUERY_DOCUMENTS_FAILED(3, "查询文档空间失败");
+    FOLDER_NON_EXISTENT(3, "文档空间中不存在该文件夹"),
+    /***/
+    QUERY_DOCUMENTS_FAILED(4, "查询文档空间失败");
 
     private final Integer code;
     private final String message;

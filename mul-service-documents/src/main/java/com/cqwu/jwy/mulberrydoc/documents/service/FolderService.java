@@ -6,6 +6,9 @@ import com.cqwu.jwy.mulberrydoc.documents.pojo.Folder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Objects;
+
 @Service
 public class FolderService
 {
@@ -32,8 +35,20 @@ public class FolderService
      * @param hash 文件夹 Hash
      * @return 文件夹
      */
-    public Folder queryFolderByHash(String uid, String hash)
+    public Folder queryFolderByHash(String uid, String hash) throws WebException
     {
         return folderDao.queryFolderByHash(uid, hash);
+    }
+
+    /**
+     * 根据父文件夹 Hash 查询所有子文件夹
+     *
+     * @param uid        用户ID
+     * @param parentHash 父文件夹 Hash
+     * @return 子文件夹列表
+     */
+    public List<Folder> querySubfolderByParentHash(String uid, String parentHash) throws WebException
+    {
+        return folderDao.querySubfolder(uid, parentHash);
     }
 }
