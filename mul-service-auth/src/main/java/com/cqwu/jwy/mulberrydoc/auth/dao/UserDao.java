@@ -5,6 +5,9 @@ import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
+/**
+ * 用户信息持久化Dao
+ */
 @Mapper
 public interface UserDao
 {
