@@ -126,11 +126,29 @@ public class FolderDao
         {
             // 所有文件夹
             List<Folder> allFolders = documents.getFolderList();
-
-            //过滤出所有 parentHash 满足条件的文件夹
-            return allFolders.stream()
-                    .filter(folder -> Objects.equals(folder.getParentHash(), parentHash))
-                    .collect(Collectors.toList());
+            // 如果父文件夹 Hash 是根目录别名
+            if (Objects.equals(parentHash, DocumentsConstant.ROOT_FOLDER_HASH_ALIAS))
+            {
+                Optional<Folder> rootFolderOpt = allFolders.stream()
+                        .filter(folder -> Objects.equals(folder.getPath(), DocumentsConstant.ROOT_FOLDER_PATH))
+                        .findFirst();
+                if (rootFolderOpt.isPresent())
+                {
+                    Folder rootFolder = rootFolderOpt.get();
+                    return allFolders.stream()
+                            .filter(folder -> Objects.equals(folder.getParentHash(), rootFolder.getHash()))
+                            .collect(Collectors.toList());
+                }
+            }
+            // 判断父文件夹是否存在
+            if (allFolders.stream().anyMatch(folder -> Objects.equals(folder.getHash(), parentHash)))
+            {
+                //过滤出所有 parentHash 满足条件的文件夹
+                return allFolders.stream()
+                        .filter(folder -> Objects.equals(folder.getParentHash(), parentHash))
+                        .collect(Collectors.toList());
+            }
+            throw new WebException(FolderError.FOLDER_NON_EXISTENT);
         }
         throw new WebException(DocumentsError.DOCUMENTS_NON_EXISTENT);
     }

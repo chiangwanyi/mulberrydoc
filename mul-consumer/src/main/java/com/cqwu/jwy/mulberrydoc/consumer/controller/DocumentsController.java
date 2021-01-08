@@ -13,14 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -94,6 +92,13 @@ public class DocumentsController
         return response.instances(res.getInstances());
     }
 
+    /**
+     * 新建文件夹
+     *
+     * @param obj     参数（Folder对象）
+     * @param request HttpServletRequest
+     * @return 结果
+     */
     @RequireLogin
     @PostMapping("/documents")
     public Object createFolder(@RequestBody Map<String, Object> obj, HttpServletRequest request)
@@ -104,6 +109,27 @@ public class DocumentsController
         LOG.info("【DocumentsController】用户ID:{}", userId);
         obj.put("uid", userId);
         HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "createFolder", obj);
+        return ResponseUtil.response(res, instance);
+    }
+
+    /**
+     * 查询父文件夹下的所有子文件夹
+     *
+     * @param parentHash 父文件夹 Hash
+     * @param request    HttpServletRequest
+     * @return 结果
+     */
+    @GetMapping("/documents/{parentHash}")
+    public Object querySubfolder(@PathVariable String parentHash, HttpServletRequest request)
+    {
+        LOG.info("【DocumentsController】查询父文件夹下的所有子文件夹");
+        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
+        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
+        LOG.info("【DocumentsController】用户ID:{}", userId);
+        Map<String, Object> obj = new HashMap<>();
+        obj.put("uid", userId);
+        obj.put("parentHash", parentHash);
+        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "querySubfolder", obj);
         return ResponseUtil.response(res, instance);
     }
 }

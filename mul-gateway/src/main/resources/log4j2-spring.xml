@@ -17,7 +17,7 @@
         <!--  Console Logger  -->
         <console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="${LOG_PATTERN}"/>
-            <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
+            <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
         </console>
         <!--  File Logger  -->
         <RollingFile name="RollingFile"

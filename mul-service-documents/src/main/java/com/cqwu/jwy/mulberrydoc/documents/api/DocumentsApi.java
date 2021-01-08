@@ -63,7 +63,7 @@ public class DocumentsApi
     /**
      * 创建文档空间
      *
-     * @param uid 用户 ID
+     * @param uid 用户ID
      * @return HttpResponse
      */
     @PostMapping("createDocuments")
