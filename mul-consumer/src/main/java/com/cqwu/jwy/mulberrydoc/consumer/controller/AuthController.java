@@ -8,7 +8,7 @@ import com.cqwu.jwy.mulberrydoc.common.serializer.response.JsonResponse;
 import com.cqwu.jwy.mulberrydoc.common.util.CookieUtil;
 import com.cqwu.jwy.mulberrydoc.common.util.RemoteConnector;
 import com.cqwu.jwy.mulberrydoc.consumer.config.SessionConfig;
-import com.cqwu.jwy.mulberrydoc.consumer.configure.Instance;
+import com.cqwu.jwy.mulberrydoc.consumer.configure.ConsumerInstance;
 import com.cqwu.jwy.mulberrydoc.consumer.interceptor.RequireLogin;
 import com.cqwu.jwy.mulberrydoc.consumer.util.ResponseUtil;
 import org.slf4j.Logger;
@@ -24,8 +24,6 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
-import java.util.Map;
 import java.util.Objects;
 
 @RestController
@@ -35,7 +33,7 @@ public class AuthController
     @Autowired
     private SessionConfig sessionConfig;
     @Autowired
-    private Instance instance;
+    private ConsumerInstance instance;
     @Autowired
     private RestTemplate restTemplate;
     private RemoteConnector remote;
@@ -84,7 +82,7 @@ public class AuthController
         if (Objects.isNull(res) || Objects.isNull(res.getData()))
         {
             LOG.warn("登录后无返回结果");
-            return HttpSerializer.internalError(instance.getInstanceId(), null);
+            return HttpSerializer.internalError(instance, null);
         }
         try
         {
@@ -105,7 +103,7 @@ public class AuthController
                 else
                 {
                     LOG.error("保存登录信息失败");
-                    return HttpSerializer.internalError(instance.getInstanceId(), null);
+                    return HttpSerializer.internalError(instance, null);
                 }
             }
             return ResponseUtil.response(response, instance);
@@ -113,7 +111,7 @@ public class AuthController
         catch (Exception e)
         {
             LOG.error("登录失败，error:", e);
-            return HttpSerializer.internalError(instance.getInstanceId(), e);
+            return HttpSerializer.internalError(instance, e);
         }
     }
 

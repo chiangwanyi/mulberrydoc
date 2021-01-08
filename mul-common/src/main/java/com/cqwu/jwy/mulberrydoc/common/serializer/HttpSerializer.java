@@ -2,7 +2,9 @@ package com.cqwu.jwy.mulberrydoc.common.serializer;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.cqwu.jwy.mulberrydoc.common.configure.ServerInstance;
 import com.cqwu.jwy.mulberrydoc.common.constant.CommonError;
+import com.cqwu.jwy.mulberrydoc.common.exception.WebException;
 import com.cqwu.jwy.mulberrydoc.common.serializer.response.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,16 +49,16 @@ public final class HttpSerializer
     }
 
     /**
-     * 成功，并设置实例ID
+     * 成功，并设置实例信息
      *
-     * @param instanceId 实例ID
+     * @param instance 实例信息
      * @return HttpResponse
      */
-    public static HttpResponse success(String instanceId)
+    public static HttpResponse success(ServerInstance instance)
     {
         return response()
                 .status(HttpSerializer.STATUS_OK)
-                .instances(instanceId);
+                .instances(instance);
     }
 
     /**
@@ -70,16 +72,16 @@ public final class HttpSerializer
     }
 
     /**
-     * 失败，并设置实例ID
+     * 失败，并设置实例信息
      *
-     * @param instanceId 实例ID
+     * @param instance 实例信息
      * @return HttpResponse
      */
-    public static HttpResponse failure(String instanceId, int status)
+    public static HttpResponse failure(ServerInstance instance, int status)
     {
         return response()
                 .status(status)
-                .instances(instanceId);
+                .instances(instance);
     }
 
     /**
@@ -109,50 +111,63 @@ public final class HttpSerializer
     /**
      * 参数不完整
      *
-     * @param instanceId 实例ID
+     * @param instance 实例信息
      */
-    public static HttpResponse incompleteParamsFailed(String instanceId)
+    public static HttpResponse incompleteParamsFailed(ServerInstance instance)
     {
-        return HttpSerializer.failure(instanceId, HttpSerializer.STATUS_BAD_REQUEST)
+        return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
                 .msg(CommonError.INCOMPLETE_PARAMETERS);
     }
 
     /**
      * 无操作权限
      *
-     * @param instanceId 实例ID
+     * @param instance 实例信息
      * @return HttpResponse
      */
-    public static HttpResponse operationForbiddenFailed(String instanceId)
+    public static HttpResponse operationForbiddenFailed(ServerInstance instance)
     {
-        return HttpSerializer.failure(instanceId, HttpSerializer.STATUS_FORBIDDEN_FAILED)
+        return HttpSerializer.failure(instance, HttpSerializer.STATUS_FORBIDDEN_FAILED)
                 .msg(CommonError.VERIFICATION_FAILED);
     }
 
     /**
      * 参数校验错误
      *
-     * @param errorInfo  错误信息
-     * @param instanceId 实例ID
+     * @param instance  实例信息
+     * @param errorInfo 错误信息
      * @return HttpResponse
      */
-    public static HttpResponse invalidParamsFailed(Object errorInfo, String instanceId)
+    public static HttpResponse invalidParamsFailed(ServerInstance instance, Object errorInfo)
     {
-        return HttpSerializer.failure(instanceId, HttpSerializer.STATUS_BAD_REQUEST)
+        return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
                 .msg(CommonError.INVALID_PARAMETERS)
                 .data(Objects.isNull(errorInfo) ? null : errorInfo);
     }
 
     /**
-     * 内部错误
+     * 服务连接失败
      *
-     * @param instanceId 实例ID
-     * @param e          异常
+     * @param instance 实例信息
+     * @param e        异常
      * @return HttpResponse
      */
-    public static HttpResponse internalError(String instanceId, Throwable e)
+    public static HttpResponse serverUnreachableFailed(ServerInstance instance, Throwable e)
     {
-        return HttpSerializer.failure(instanceId, HttpSerializer.INTERNAL_SERVER_ERROR)
+        return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
+                .msg(e);
+    }
+
+    /**
+     * 内部错误
+     *
+     * @param instance 实例信息
+     * @param e        异常
+     * @return HttpResponse
+     */
+    public static HttpResponse internalError(ServerInstance instance, Throwable e)
+    {
+        return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
                 .msg(CommonError.INTERNAL_ERROR)
                 .data(e);
     }

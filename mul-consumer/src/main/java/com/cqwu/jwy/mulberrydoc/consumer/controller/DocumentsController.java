@@ -1,11 +1,13 @@
 package com.cqwu.jwy.mulberrydoc.consumer.controller;
 
-import com.cqwu.jwy.mulberrydoc.common.constant.CommonError;
 import com.cqwu.jwy.mulberrydoc.common.constant.ServiceConst;
 import com.cqwu.jwy.mulberrydoc.common.serializer.HttpSerializer;
 import com.cqwu.jwy.mulberrydoc.common.serializer.response.HttpResponse;
+import com.cqwu.jwy.mulberrydoc.common.util.CookieUtil;
 import com.cqwu.jwy.mulberrydoc.common.util.RemoteConnector;
-import com.cqwu.jwy.mulberrydoc.consumer.configure.Instance;
+import com.cqwu.jwy.mulberrydoc.consumer.config.SessionConfig;
+import com.cqwu.jwy.mulberrydoc.consumer.configure.ConsumerInstance;
+import com.cqwu.jwy.mulberrydoc.consumer.interceptor.RequireLogin;
 import com.cqwu.jwy.mulberrydoc.consumer.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,21 +20,25 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 @RestController
 public class DocumentsController
 {
     private static final Logger LOG = LoggerFactory.getLogger(DocumentsController.class);
     @Autowired
-    private Instance instance;
+    private ConsumerInstance instance;
     @Autowired
     private RestTemplate restTemplate;
-    private RemoteConnector remote;
     @Autowired
     private AuthController authController;
+    @Autowired
+    private SessionConfig sessionConfig;
+
+    private RemoteConnector remote;
+
 
     @PostConstruct
     public void init()
@@ -54,6 +60,12 @@ public class DocumentsController
         return ResponseUtil.response(res, instance);
     }
 
+    /**
+     * 创建文档空间
+     *
+     * @param obj 参数（UserId）
+     * @return 结果
+     */
     @PostMapping("/documents/createDocuments")
     public Object createDocuments(@RequestBody Map<String, Object> obj)
     {
@@ -62,13 +74,13 @@ public class DocumentsController
         if (Objects.isNull(obj) || obj.isEmpty())
         {
             LOG.warn("【DocumentsController】参数格式错误");
-            return HttpSerializer.invalidParamsFailed(null, instance.getInstanceId());
+            return HttpSerializer.invalidParamsFailed(instance, null);
         }
         String uid = (String) obj.get("uid");
         if (StringUtils.isEmpty(uid))
         {
             LOG.warn("【DocumentsController】参数不完整");
-            return HttpSerializer.incompleteParamsFailed(instance.getInstanceId());
+            return HttpSerializer.incompleteParamsFailed(instance);
         }
         // 检查用户是否存在
         HttpResponse res = remote.post(ServiceConst.AUTH_SERVICE, "isExisted", uid);
@@ -78,7 +90,20 @@ public class DocumentsController
             res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "createDocuments", uid);
             return ResponseUtil.response(res, instance);
         }
-        HttpResponse response = HttpSerializer.operationForbiddenFailed(instance.getInstanceId());
+        HttpResponse response = HttpSerializer.operationForbiddenFailed(instance);
         return response.instances(res.getInstances());
+    }
+
+    @RequireLogin
+    @PostMapping("/documents")
+    public Object createFolder(@RequestBody Map<String, Object> obj, HttpServletRequest request)
+    {
+        LOG.info("【DocumentsController】创建文件夹");
+        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
+        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
+        LOG.info("【DocumentsController】用户ID:{}", userId);
+        obj.put("uid", userId);
+        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "createFolder", obj);
+        return ResponseUtil.response(res, instance);
     }
 }

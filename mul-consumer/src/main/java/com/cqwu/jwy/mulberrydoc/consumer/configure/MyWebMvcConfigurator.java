@@ -21,7 +21,7 @@ public class MyWebMvcConfigurator extends WebMvcConfigurationSupport
     @Autowired
     private RestTemplate restTemplate;
     @Autowired
-    private Instance instance;
+    private ConsumerInstance instance;
     private RemoteConnector remote;
 
     @PostConstruct

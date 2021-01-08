@@ -61,15 +61,15 @@ public class HttpResponse
         return this;
     }
 
-    public HttpResponse instances(String instanceId)
+    public HttpResponse instances(Object instance)
     {
-        this.instances.add(instanceId);
+        this.instances.add(instance);
         return this;
     }
 
-    public HttpResponse instances(Collection<Object> instanceIdList)
+    public HttpResponse instances(Collection<Object> instances)
     {
-        this.instances.addAll(instanceIdList);
+        this.instances.addAll(instances);
         return this;
     }
 

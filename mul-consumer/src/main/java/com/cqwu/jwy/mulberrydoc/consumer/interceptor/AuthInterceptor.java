@@ -8,7 +8,7 @@ import com.cqwu.jwy.mulberrydoc.common.serializer.response.HttpResponse;
 import com.cqwu.jwy.mulberrydoc.common.util.CookieUtil;
 import com.cqwu.jwy.mulberrydoc.common.util.RemoteConnector;
 import com.cqwu.jwy.mulberrydoc.consumer.config.SessionConfig;
-import com.cqwu.jwy.mulberrydoc.consumer.configure.Instance;
+import com.cqwu.jwy.mulberrydoc.consumer.configure.ConsumerInstance;
 import org.springframework.util.StringUtils;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -23,7 +23,7 @@ public class AuthInterceptor implements HandlerInterceptor
 {
     private final SessionConfig sessionConfig;
     private final RemoteConnector remote;
-    private final Instance instance;
+    private final ConsumerInstance instance;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception
@@ -68,7 +68,7 @@ public class AuthInterceptor implements HandlerInterceptor
                     response.getOutputStream()
                             .write(JSONObject.toJSONString(
                                     HttpSerializer
-                                            .failure(instance.getInstanceId(), HttpSerializer.INTERNAL_SERVER_ERROR)
+                                            .failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
                                             .msg(CommonError.INTERNAL_ERROR))
                                            .getBytes(StandardCharsets.UTF_8));
                     return false;
@@ -78,7 +78,7 @@ public class AuthInterceptor implements HandlerInterceptor
             response.getOutputStream()
                     .write(JSONObject.toJSONString(
                             HttpSerializer
-                                    .failure(instance.getInstanceId(), HttpSerializer.STATUS_FORBIDDEN_FAILED)
+                                    .failure(instance, HttpSerializer.STATUS_FORBIDDEN_FAILED)
                                     .msg(CommonError.VERIFICATION_FAILED))
                                    .getBytes(StandardCharsets.UTF_8));
             return false;
@@ -86,7 +86,7 @@ public class AuthInterceptor implements HandlerInterceptor
         return true;
     }
 
-    public AuthInterceptor(SessionConfig sessionConfig, RemoteConnector remote, Instance instance)
+    public AuthInterceptor(SessionConfig sessionConfig, RemoteConnector remote, ConsumerInstance instance)
     {
         this.sessionConfig = sessionConfig;
         this.remote = remote;

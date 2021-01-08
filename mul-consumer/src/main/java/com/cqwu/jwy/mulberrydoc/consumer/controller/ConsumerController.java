@@ -2,7 +2,7 @@ package com.cqwu.jwy.mulberrydoc.consumer.controller;
 
 import com.cqwu.jwy.mulberrydoc.common.constant.ServiceConst;
 import com.cqwu.jwy.mulberrydoc.common.serializer.HttpSerializer;
-import com.cqwu.jwy.mulberrydoc.consumer.configure.Instance;
+import com.cqwu.jwy.mulberrydoc.consumer.configure.ConsumerInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ConsumerController
 {
     @Autowired
-    private Instance instance;
+    private ConsumerInstance instance;
 
     /**
      * 检查服务状态
@@ -21,7 +21,6 @@ public class ConsumerController
     @GetMapping("/ping")
     public Object ping()
     {
-        return HttpSerializer.success(instance.getInstanceId())
-                .msg(ServiceConst.PONG);
+        return HttpSerializer.success(instance).msg(ServiceConst.PONG);
     }
 }

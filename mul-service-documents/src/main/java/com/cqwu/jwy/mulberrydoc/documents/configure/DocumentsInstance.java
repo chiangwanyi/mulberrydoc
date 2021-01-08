@@ -1,21 +1,11 @@
 package com.cqwu.jwy.mulberrydoc.documents.configure;
 
+import com.cqwu.jwy.mulberrydoc.common.configure.ServerInstance;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @ConfigurationProperties(prefix = "eureka.instance")
 @Component
-public class Instance
+public class DocumentsInstance extends ServerInstance
 {
-    private String instanceId;
-
-    public String getInstanceId()
-    {
-        return instanceId;
-    }
-
-    public void setInstanceId(String instanceId)
-    {
-        this.instanceId = instanceId;
-    }
 }

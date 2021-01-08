@@ -11,7 +11,9 @@ public enum CommonError implements ErrorMsg
     /***/
     VERIFICATION_FAILED(3, "无权限"),
     /***/
-    INTERNAL_ERROR(4, "内部错误");
+    SERVER_UNREACHABLE(4, "服务不可用"),
+    /***/
+    INTERNAL_ERROR(5, "内部错误");
     private final Integer code;
     private final String message;
 

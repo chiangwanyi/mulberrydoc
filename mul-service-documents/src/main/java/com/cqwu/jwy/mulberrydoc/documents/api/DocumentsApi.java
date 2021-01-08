@@ -1,13 +1,12 @@
 package com.cqwu.jwy.mulberrydoc.documents.api;
 
-import com.alibaba.fastjson.JSONObject;
 import com.cqwu.jwy.mulberrydoc.common.constant.ServiceConst;
 import com.cqwu.jwy.mulberrydoc.common.exception.WebException;
 import com.cqwu.jwy.mulberrydoc.common.serializer.HttpSerializer;
 import com.cqwu.jwy.mulberrydoc.common.serializer.response.HttpResponse;
 import com.cqwu.jwy.mulberrydoc.common.util.PojoGenerator;
 import com.cqwu.jwy.mulberrydoc.common.validator.Validator;
-import com.cqwu.jwy.mulberrydoc.documents.configure.Instance;
+import com.cqwu.jwy.mulberrydoc.documents.configure.DocumentsInstance;
 import com.cqwu.jwy.mulberrydoc.documents.constant.DocumentsError;
 import com.cqwu.jwy.mulberrydoc.documents.constant.FolderConstant;
 import com.cqwu.jwy.mulberrydoc.documents.constant.FolderError;
@@ -46,7 +45,7 @@ public class DocumentsApi
     @Autowired
     private FolderService folderService;
     @Autowired
-    private Instance instance;
+    private DocumentsInstance instance;
 
     /**
      * 返回程序运行状态
@@ -57,7 +56,7 @@ public class DocumentsApi
     public HttpResponse ping()
     {
         LOG.info("【检查运行状态】PING");
-        return HttpSerializer.success(instance.getInstanceId())
+        return HttpSerializer.success(instance)
                 .msg(ServiceConst.PONG);
     }
 
@@ -79,12 +78,12 @@ public class DocumentsApi
             documentsService.createDocument(uid);
             LOG.info("【创建文档空间】用户ID：{}创建文档空间成功", uid);
             return HttpSerializer
-                    .success(instance.getInstanceId())
+                    .success(instance)
                     .msg(CREATE_DOCUMENTS_SUCCESS);
         }
         // 已创建
         LOG.warn("【创建文档空间】用户ID：{}的文档空间已存在，创建文档空间失败，", uid);
-        return HttpSerializer.failure(instance.getInstanceId(), HttpSerializer.STATUS_BAD_REQUEST)
+        return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
                 .msg(DocumentsError.DOCUMENTS_EXISTENT);
     }
 
@@ -104,7 +103,7 @@ public class DocumentsApi
         if (StringUtils.isEmpty(uid) || StringUtils.isEmpty(hash))
         {
             LOG.warn("【查询文件夹】参数不完整");
-            return HttpSerializer.incompleteParamsFailed(instance.getInstanceId());
+            return HttpSerializer.incompleteParamsFailed(instance);
         }
         LOG.info("【查询文件夹】用户ID：{}\t文件夹Hash：{}", uid, hash);
         try
@@ -113,17 +112,17 @@ public class DocumentsApi
             // 文件夹不存在
             if (Objects.isNull(folder))
             {
-                return HttpSerializer.failure(instance.getInstanceId(), HttpSerializer.STATUS_BAD_REQUEST)
+                return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
                         .msg(FolderError.FOLDER_NON_EXISTENT);
             }
-            return HttpSerializer.success(instance.getInstanceId())
+            return HttpSerializer.success(instance)
                     .msg(FolderConstant.QUERY_FOLDERS_SUCCESS)
                     .data(folder);
         }
         catch (WebException e)
         {
             LOG.error("【查询文件夹】查询失败，{}, error：", e.getErrorMsg(), e);
-            return HttpSerializer.failure(instance.getInstanceId(), HttpSerializer.STATUS_BAD_REQUEST)
+            return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
                     .msg(e);
         }
     }
@@ -144,14 +143,14 @@ public class DocumentsApi
         if (StringUtils.isEmpty(uid) || StringUtils.isEmpty(parentHash))
         {
             LOG.warn("【查询子文件夹列表】参数不完整");
-            return HttpSerializer.incompleteParamsFailed(instance.getInstanceId());
+            return HttpSerializer.incompleteParamsFailed(instance);
         }
         LOG.info("【查询子文件夹列表】用户ID：{}\t父文件夹Hash：{}", uid, parentHash);
         try
         {
             List<Folder> subfolder = folderService.querySubfolderByParentHash(uid, parentHash);
             LOG.info("【查询子文件夹列表】查询成功，文件夹列表：{}", subfolder);
-            return HttpSerializer.success(instance.getInstanceId())
+            return HttpSerializer.success(instance)
                     .msg(FolderConstant.QUERY_FOLDERS_SUCCESS)
                     .data(subfolder);
         }
@@ -159,7 +158,7 @@ public class DocumentsApi
         catch (WebException e)
         {
             LOG.error("【查询子文件夹列表】查询失败，{}, error：", e.getErrorMsg(), e);
-            return HttpSerializer.failure(instance.getInstanceId(), HttpSerializer.STATUS_BAD_REQUEST)
+            return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
                     .msg(e);
         }
     }
@@ -174,26 +173,28 @@ public class DocumentsApi
     public HttpResponse createFolder(@RequestBody Map<String, Object> obj)
     {
         LOG.info("【创建文件夹】参数：{}", obj);
+        // 用户ID
         String uid = (String) obj.get(PARAM_UID);
         // 待创建的文件夹
         Folder info = PojoGenerator.generate(obj.get(PARAM_FOLDER), Folder.class);
+
         if (StringUtils.isEmpty(uid) || Objects.isNull(info))
         {
             LOG.warn("【创建文件夹】参数不完整");
-            return HttpSerializer.incompleteParamsFailed(instance.getInstanceId());
+            return HttpSerializer.incompleteParamsFailed(instance);
         }
         Map<String, List<String>> errorMsg = Validator.verify(info, Folder.class);
         // 校验失败
         if (!errorMsg.isEmpty())
         {
             LOG.warn("【创建文件夹】校验字段不通过");
-            return HttpSerializer.invalidParamsFailed(errorMsg, instance.getInstanceId());
+            return HttpSerializer.invalidParamsFailed(instance, errorMsg);
         }
         // 创建文件夹
         try
         {
             Folder folder = folderService.createFolder(uid, info);
-            return HttpSerializer.success(instance.getInstanceId())
+            return HttpSerializer.success(instance)
                     .msg(FolderConstant.CREATE_FOLDER_SUCCESS)
                     .data(folder);
         }
@@ -201,7 +202,7 @@ public class DocumentsApi
         catch (WebException e)
         {
             LOG.error("【创建文件夹】创建失败，{}，error:", e.getErrorMsg(), e);
-            return HttpSerializer.failure(instance.getInstanceId(), HttpSerializer.STATUS_BAD_REQUEST)
+            return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
                     .msg(e);
         }
     }
@@ -222,7 +223,7 @@ public class DocumentsApi
         if (StringUtils.isEmpty(uid) || Objects.isNull(info) || StringUtils.isEmpty(info.getHash()) || StringUtils.isEmpty(info.getName()))
         {
             LOG.warn("【修改文件夹】参数不完整");
-            return HttpSerializer.incompleteParamsFailed(instance.getInstanceId());
+            return HttpSerializer.incompleteParamsFailed(instance);
         }
         return null;
     }

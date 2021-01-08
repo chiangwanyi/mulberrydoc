@@ -91,9 +91,21 @@ public class FolderDao
         if (Objects.nonNull(documents))
         {
             List<Folder> folderList = documents.getFolderList();
-            Optional<Folder> folderOpt = folderList.stream()
-                    .filter(folder -> Objects.equals(folder.getHash(), hash))
-                    .findFirst();
+            Optional<Folder> folderOpt;
+            // 如果查询的文件夹是 根目录别名 $root
+            if (Objects.equals(hash, DocumentsConstant.ROOT_FOLDER_HASH_ALIAS))
+            {
+                folderOpt = folderList
+                        .stream()
+                        .filter(folder -> Objects.equals(folder.getPath(), DocumentsConstant.ROOT_FOLDER_PATH))
+                        .findFirst();
+            }
+            else
+            {
+                folderOpt = folderList.stream()
+                        .filter(folder -> Objects.equals(folder.getHash(), hash))
+                        .findFirst();
+            }
             return folderOpt.orElse(null);
         }
         throw new WebException(DocumentsError.DOCUMENTS_NON_EXISTENT);
