@@ -132,4 +132,19 @@ public class DocumentsController
         HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "querySubfolder", obj);
         return ResponseUtil.response(res, instance);
     }
+
+    /**
+     * 修改文件夹
+     *
+     * @param obj     参数（Folder对象）
+     * @param request HttpServletRequest
+     * @return 结果
+     */
+    @RequireLogin
+    @PatchMapping("/documents")
+    public Object updateFolder(@RequestBody Map<String, Object> obj, HttpServletRequest request)
+    {
+        LOG.info("【DocumentsController】查询父文件夹下的所有子文件夹");
+        return 1;
+    }
 }

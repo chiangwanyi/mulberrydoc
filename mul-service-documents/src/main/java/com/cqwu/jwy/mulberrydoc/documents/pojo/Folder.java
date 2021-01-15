@@ -23,8 +23,6 @@ public class Folder
     private String name;
     /** 文件夹 完整路径 */
     private String path;
-    /** 文件夹 深度 */
-    private Integer depth;
     /** 是否标记为 收藏 */
     private Boolean isFavorite;
     /** 文件Hash 列表 */
@@ -41,7 +39,6 @@ public class Folder
      */
     public Folder()
     {
-        this.depth = 0;
         this.isFavorite = false;
         this.createdAt = DateUtil.nowDatetime();
         this.updatedAt = this.createdAt;
@@ -67,7 +64,6 @@ public class Folder
         this.parentHash = parentFolder.getHash();
         this.name = folderName;
         this.path = path;
-        this.depth = parentFolder.getDepth() + 1;
     }
 
     @Override
@@ -123,16 +119,6 @@ public class Folder
     public void setPath(String path)
     {
         this.path = path;
-    }
-
-    public Integer getDepth()
-    {
-        return depth;
-    }
-
-    public void setDepth(Integer depth)
-    {
-        this.depth = depth;
     }
 
     public Boolean getFavorite()
@@ -193,7 +179,6 @@ public class Folder
                 ", parentHash='" + parentHash + '\'' +
                 ", name='" + name + '\'' +
                 ", path='" + path + '\'' +
-                ", depth=" + depth +
                 ", isFavorite=" + isFavorite +
                 ", fileList=" + fileList +
                 ", createdAt=" + createdAt +

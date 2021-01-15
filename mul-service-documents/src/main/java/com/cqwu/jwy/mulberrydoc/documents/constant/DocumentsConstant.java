@@ -4,8 +4,9 @@ public final class DocumentsConstant
 {
     /** 根目录 Hash 别名 */
     public static final String ROOT_FOLDER_HASH_ALIAS = "$root";
+    /***/
     public static final String ROOT_FOLDER_PATH = "/";
-
+    /***/
     public static final String CREATE_DOCUMENTS_SUCCESS = "创建文档空间成功";
 
     private DocumentsConstant()

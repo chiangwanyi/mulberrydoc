@@ -219,11 +219,24 @@ public class DocumentsApi
         LOG.info("【修改文件夹】参数：{}", obj);
         String uid = (String) obj.get(PARAM_UID);
         // 待创建的文件夹
-        Folder info = PojoGenerator.generate(obj.get(PARAM_FOLDER), Folder.class);
-        if (StringUtils.isEmpty(uid) || Objects.isNull(info) || StringUtils.isEmpty(info.getHash()) || StringUtils.isEmpty(info.getName()))
+        Folder updateFolder = PojoGenerator.generate(obj.get(PARAM_FOLDER), Folder.class);
+        if (StringUtils.isEmpty(uid) || Objects.isNull(updateFolder) || StringUtils.isEmpty(updateFolder.getHash()))
         {
             LOG.warn("【修改文件夹】参数不完整");
             return HttpSerializer.incompleteParamsFailed(instance);
+        }
+        try
+        {
+            boolean result = folderService.updateFolder(uid, updateFolder);
+            if (result)
+            {
+                return HttpSerializer.success(instance)
+                        .msg(FolderConstant.UPDATE_FOLDERS_SUCCESS);
+            }
+        }
+        catch (WebException e)
+        {
+            e.printStackTrace();
         }
         return null;
     }

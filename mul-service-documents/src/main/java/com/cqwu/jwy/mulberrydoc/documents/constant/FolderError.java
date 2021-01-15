@@ -9,7 +9,9 @@ public enum FolderError implements ErrorMsg
     /***/
     FOLDER_NON_EXISTENT(2, "文件夹不存在"),
     /***/
-    FOLDER_ALREADY_EXISTENT(3, "文件夹已存在");
+    FOLDER_ALREADY_EXISTENT(3, "文件夹已存在"),
+    /***/
+    UPDATE_ROOT_FOLDER_FAILED(4, "不能修改根目录");
 
     private final Integer code;
     private final String message;

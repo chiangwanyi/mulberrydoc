@@ -51,4 +51,17 @@ public class FolderService
     {
         return folderDao.querySubfolder(uid, parentHash);
     }
+
+    /**
+     * 修改文件夹信息
+     *
+     * @param uid          用户ID
+     * @param updateFolder 修改信息
+     * @return 修改结果
+     * @throws WebException 异常
+     */
+    public boolean updateFolder(String uid, Folder updateFolder) throws WebException
+    {
+        return folderDao.updateFolder(uid, updateFolder);
+    }
 }

@@ -7,12 +7,10 @@ module.exports = {
         let err;
         if (query !== null) {
             let params = querystring.parse(query);
-            let docId = params.doc;
-            let token = params.token;
-            if (docId === "aaa" && token === "12345") {
-                callback(undefined, docId, "jwy")
-                return;
-            }
+            let groupId = params.groupId;
+            let userId = params.userId;
+            callback(undefined, groupId, userId)
+            return;
         }
         callback("无权限", undefined, undefined)
     }
