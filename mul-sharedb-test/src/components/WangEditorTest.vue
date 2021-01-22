@@ -20,8 +20,8 @@
 
 <script>
     import ReconnectingWebSocket from "reconnecting-websocket";
-    import Ot from "../util/ot";
-    import Editor from 'wangeditor';
+    import Ot from "../util/Ot";
+    import Editor from "wangeditor";
 
     const sharedb = require("sharedb/lib/client");
     const json1 = require("ot-json1");
@@ -73,10 +73,10 @@
                         console.warn(`文档：${this.groupId}未创建，正在创建，然后重新订阅`);
                         this.doc.create({
                             data: [
-                                {text: '<h1>我是一级标题</h1>'},
-                                {text: '<h2>我是二级标题</h2>'},
-                                {text: '<h3>我是三级标题</h3>'},
-                                {text: '<p>我是文本段落</p>'},
+                                {text: '<h1 id="1-1">我是一级标题</h1>'},
+                                {text: '<h2 id="1-2">我是二级标题</h2>'},
+                                {text: '<h3 id="1-3">我是三级标题</h3>'},
+                                {text: '<p id="2-1">我是文本段落</p>'},
                             ]
                         }, json1.type.uri);
                         this.doc.destroy();
@@ -208,10 +208,6 @@
         mounted() {
             this.editor = new Editor('#container');
             this.editor.config.onchange = this.saveData;
-            // this.editor.create();
-            // setInterval(() => {
-            //     console.log(this.editor.selection)
-            // }, 2000);
         }
     }
 </script>

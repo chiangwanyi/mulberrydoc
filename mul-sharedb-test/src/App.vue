@@ -1,31 +1,25 @@
 <template>
-  <div id="app">
-<!--    <HelloWorld />-->
-<!--    <QuillTest/>-->
-      <WangEditorTest/>
-  </div>
+    <div id="app">
+        <RichText/>
+    </div>
 </template>
 
 <script>
-// import HelloWorld from "./components/HelloWorld.vue";
-// import QuillTest from "./components/QuillTest";
-import WangEditorTest from "./components/WangEditorTest";
+    import RichText from "./views/RichText";
 
-export default {
-  name: "App",
-  components: {
-      WangEditorTest,
-    // QuillTest,
-    // HelloWorld,
-  },
-};
+    export default {
+        name: "App",
+        components: {
+            RichText,
+        },
+    };
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
-}
+    #app {
+        font-family: Avenir, Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        color: #2c3e50;
+    }
 </style>

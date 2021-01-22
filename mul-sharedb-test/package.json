@@ -11,6 +11,7 @@
     "core-js": "^3.6.5",
     "marked": "^1.2.7",
     "ot-json1": "^1.0.1",
+    "ot-text-unicode": "^4.0.0",
     "vue": "^2.6.11",
     "wangeditor": "^4.6.3"
   },

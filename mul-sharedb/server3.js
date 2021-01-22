@@ -24,8 +24,8 @@ const wss = new WebSocket.Server({
 server.listen(9000);
 console.log("服务开启，监听端口：9000");
 
-wss.on('connection', (ws, groupId) => {
-    console.log("用户连接成功，groupId:", groupId)
+wss.on('connection', (ws, token) => {
+    console.log("用户连接成功，token:", token)
     let stream = new WebSocketJSONStream(ws);
     share.listen(stream);
 });
@@ -36,16 +36,16 @@ wss.on('close', () => {
 
 server.on('upgrade', (request, socket, head) => {
     console.log("正在验证身份...");
-    auth.authenticate(request, (err, groupId, userId) => {
+    auth.authenticate(request, (err, token) => {
         if (err) {
             console.log("身份认证失败");
             socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
             socket.destroy();
             return;
         }
-        console.log(`身份认证成功，userId：${userId}`);
+        console.log(`身份认证成功，token：${token}`);
         wss.handleUpgrade(request, socket, head, function done(ws) {
-            wss.emit('connection', ws, groupId);
+            wss.emit('connection', ws, token);
         });
     })
 });
