@@ -10,10 +10,6 @@
 </template>
 
 <script>
-    // 当前版本实现了可编辑功能，文档数据结构：data: {html: ""}
-    // 已知问题：1. 多用户同时编辑不同行时光标位置不稳定
-    //           2. 接收操作后更新同步状态后数据仍不同步
-
     import * as StringUtils from "../util/StringUtils";
     import TimeUtils from "../util/TimeUtils";
     import Log from "../util/log";
