@@ -20,6 +20,8 @@
 <script>
     import * as StringUtils from "../util/StringUtils";
     import Editor from "../components/Editor";
+    import TimeUtils from "../util/TimeUtils";
+    import Log from "../util/log";
     import ReconnectingWebSocket from "reconnecting-websocket";
 
     const sharedb = require("sharedb/lib/client");
@@ -58,6 +60,7 @@
                 }
             },
             subscribeDoc() {
+                const mn = "订阅文档";
                 if (this.doc !== null) {
                     this.doc.subscribe(err => {
                         if (err) {
@@ -73,13 +76,13 @@
                                 this.$refs.editor.initEditor();
                                 this.doc.on('op', (op, source) => {
                                     if (!source) {
-                                        console.log(`接收到操作\t op:${JSON.stringify(op)}\t source:${source}`)
+                                        console.log(Log.prefix(TimeUtils.fullTimeString(), mn) + `接收到操作\t op:${JSON.stringify(op)}\t source:${source}`)
                                         this.$refs.editor.syncData();
                                     }
                                 });
                             }
                         } else {
-                            console.error("读取文档数据失败");
+                            console.error(Log.prefix(TimeUtils.fullTimeString(), mn) + "读取文档数据失败")
                             this.doc.destroy();
                         }
                     });

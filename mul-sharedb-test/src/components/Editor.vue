@@ -11,8 +11,13 @@
 
 <script>
     import * as StringUtils from "../util/StringUtils";
+    import TimeUtils from "../util/TimeUtils";
+    import Log from "../util/log";
     import Ot from "../util/ot2";
     import E from "wangeditor";
+
+    // 数据不同步导致编辑器冻结的上限尝试次数
+    const freezeLimit = 20;
 
     export default {
         name: "Editor",
@@ -24,6 +29,13 @@
                 editor: null,
                 // 内容同步状态
                 syncStatus: false,
+                // 操作冻结计数器
+                freezeCount: 0,
+
+                // 全局监听器
+
+                // 同步状态监听器
+                statusListener: null,
             }
         },
         methods: {
@@ -31,31 +43,40 @@
              * 初始化编辑器
              */
             initEditor() {
+                const mn = "编辑器初始化";
                 if (this.editor === null) {
-                    console.log("开始初始化编辑器");
+                    console.log(Log.prefix(TimeUtils.fullTimeString(), mn) + "开始初始化编辑器");
                     // 填充内容
                     document.getElementById("container").innerHTML = StringUtils.strToUtf16(this.getDocData());
                     // 创建编辑器实例
                     this.editor = new E('#container');
                     // 监听本地变更
                     this.editor.config.onchange = this.onChange;
+                    this.editor.config.onchangeTimeout = 1000;
                     this.editor.create();
-                    console.log("初始化编辑器成功");
+                    console.log(Log.prefix(TimeUtils.fullTimeString(), mn) + `编辑器初始化成功，500ms后解锁内容编辑`);
+                    this.fillSeq();
+                    this.submitOps();
                     setTimeout(() => {
-                        this.checkStatus();
+                        // 启动状态监听器
+                        this.startStatusListener();
                         this.lock = false;
                     }, 500);
+                    // setInterval(() => {
+                    //     this.onChange();
+                    // }, 1000);
                 } else {
-                    console.warn("编辑器已初始化");
+                    console.warn(Log.prefix(TimeUtils.fullTimeString(), mn) + "编辑器已初始化");
                 }
             },
             /**
              * 从文档的数据中更新编辑器
              */
             syncData() {
+                const mn = "同步数据";
+                console.log(Log.prefix(TimeUtils.fullTimeString(), mn) + "开始同步数据");
                 // 锁定内容
                 this.lock = true;
-                console.log("锁定内容");
                 // 当前最新的数据
                 let newContainer = document.createElement("div");
                 newContainer.innerHTML = StringUtils.strToUtf16(this.getDocData());
@@ -73,7 +94,7 @@
                 let map = Ot.map(oldValue, newValue);
                 // console.log(map);
                 let diff = Ot.completeDiff(map.hashA, map.hashB);
-                console.log(diff);
+                // console.log(diff);
                 let index = 0;
                 diff.forEach(op => {
                     if (op.r !== undefined) {
@@ -97,39 +118,128 @@
                         }
                     }
                 })
-                console.log("修改完毕")
-                // 解锁，继续监听变更
-                setTimeout(() => {
-                    console.log(`[${(new Date()).valueOf()}]解锁内容`);
+                console.log(Log.prefix(TimeUtils.fullTimeString(), mn) + "同步数据完成");
+                // 解锁，检查变更
+                this.checkDataSync();
+            },
+            checkDataSync() {
+                const mn = "数据同步监听";
+                console.log(Log.prefix(TimeUtils.fullTimeString(), mn) + "开始监听数据同步状态");
+                if (this.getDocData() === this.getContainerData()) {
+                    this.freezeCount = 0;
+                    console.log(Log.prefix(TimeUtils.fullTimeString(), mn) + "数据已同步，停止监听，解锁内容编辑");
                     this.lock = false;
-                    this.onChange();
-                }, 1000);
+                } else {
+                    this.lock = true;
+                    console.warn(Log.prefix(TimeUtils.fullTimeString(), mn) + "数据不同步，开始同步数据");
+                    this.freezeCount++;
+                    this.syncData();
+                }
             },
             /**
              * 处理内容变更
              */
             onChange() {
+                const mn = "数据处理";
                 if (this.lock) {
-                    console.log(`[${(new Date()).valueOf()}]内容锁定中`)
+                    console.warn(Log.prefix(TimeUtils.fullTimeString(), mn) + "内容锁定中");
                     return;
                 } else {
                     this.lock = true;
                 }
-                // this.updateEditor();
+                this.fillSeq();
                 this.submitOps();
                 // 解锁，继续监听变更
                 this.lock = false;
             },
+            /**
+             * 提交变更
+             **/
             submitOps() {
-                console.log("===== 开始分析操作 =====");
+                const mn = "提交变更";
+                // console.log(Log.prefix(TimeUtils.fullTimeString(), mn), "开始处理变更")
                 let diff = Ot.diff(this.getDocData(), this.getContainerData());
-                console.log(JSON.stringify(diff));
-                if (diff.length === 0) {
-                    console.log("===== 无变化 =====");
-                } else {
-                    console.log("===== 提交操作 =====");
+                if (diff.length !== 0) {
+                    console.log(Log.prefix(TimeUtils.fullTimeString(), mn), "开始提交变更：" + JSON.stringify(diff));
                     this.doc.submitOp(['data', ['html', {es: diff}]]);
                 }
+            },
+            /**
+             * DOM序号处理
+             **/
+            fillSeq() {
+                const mn = "处理DOM序号";
+                this.lock = true;
+                // console.log(Log.prefix(TimeUtils.fullTimeString(), mn) + `开始处理DOM序号`);
+                let element = document.getElementById(this.editor.textElemId);
+                // 记录出现过的序号
+                let indexList = [];
+                // 记录有问题的节点下标
+                let errorIndexList = [];
+                for (let i = 0; i < element.children.length; i++) {
+                    // 节点
+                    let el = element.children.item(i);
+
+                    // 如果节点是末尾空行，移除index属性并跳过
+                    if (el.innerText === "\n") {
+                        element.children.item(i).removeAttribute("index");
+                        continue;
+                    }
+                    // 序号
+                    let seq = /([0-9]+)-([0-9]+)/.exec(el.getAttribute("index"));
+                    // 如果序号格式错误
+                    if (seq === null) {
+                        errorIndexList.push(i);
+                    } else {
+                        let author = seq[1];
+                        let index = parseInt(seq[2]);
+                        // 如果序号是当前用户的序号
+                        if (this.author === author) {
+                            // 已经包含了该序号
+                            if (indexList.includes(index)) {
+                                errorIndexList.push(i);
+                            } else {
+                                indexList.push(index)
+                            }
+                        }
+                    }
+                }
+                let nextIndex = 0;
+                // 获得下一序号
+                if (indexList.length !== 0) {
+                    nextIndex = Math.max(...indexList) + 1;
+                }
+                // 修改有问题的序号
+                errorIndexList.forEach(i => {
+                    console.log(Log.prefix(TimeUtils.fullTimeString(), mn) + `修复序号有问题的DOM`);
+                    element.children.item(i).setAttribute("index", `${this.author}-${nextIndex++}`);
+                })
+                this.lock = false;
+                // console.log(Log.prefix(TimeUtils.fullTimeString(), mn) + `处理DOM序号完成`);
+            },
+            /**
+             * 状态监听器
+             */
+            startStatusListener() {
+                const mn = "状态监听器";
+                console.log(Log.prefix(TimeUtils.fullTimeString(), mn) + "状态监听器启动");
+                this.statusListener = setInterval(() => {
+                    let docData = this.getDocData();
+                    let containerData = this.getContainerData();
+                    if (docData !== containerData) {
+                        this.syncStatus = false;
+                        if (this.freezeCount < freezeLimit) {
+                            console.warn(Log.prefix(TimeUtils.fullTimeString(), mn) + "数据不同步，开始计次：" + this.freezeCount++);
+                        } else {
+                            console.error(Log.prefix(TimeUtils.fullTimeString(), mn) + "数据不同步尝试次数达到上限，冻结编辑器，重新同步数据");
+                            this.syncData();
+                            // clearInterval(this.statusListener);
+                        }
+                    } else {
+                        this.syncStatus = true;
+                        this.freezeCount = 0;
+                    }
+                }, 500);
             },
             /**
              * 获取文档的数据
@@ -138,22 +248,14 @@
             getDocData() {
                 return this.doc.data.data.html;
             },
+            /**
+             * 获取页面的数据
+             * @returns {string} 数据
+             */
             getContainerData() {
                 let element = document.getElementById(this.editor.textElemId);
                 return StringUtils.utf16ToStr(element.innerHTML);
             },
-            checkStatus() {
-                setInterval(() => {
-                    let docData = this.getDocData();
-                    let containerData = this.getContainerData();
-                    if (docData !== containerData) {
-                        this.syncStatus = false;
-                        console.log("状态不同步");
-                    } else {
-                        this.syncStatus = true;
-                    }
-                }, 200);
-            }
         },
         props: {
             doc: Object,
