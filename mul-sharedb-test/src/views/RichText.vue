@@ -36,7 +36,7 @@
         data() {
             return {
                 author: "1",
-                token: "1",
+                token: "2",
                 ready: false,
                 doc: null,
                 socket: null,

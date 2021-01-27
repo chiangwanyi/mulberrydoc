@@ -6,14 +6,14 @@ const Delta = Quill.import("delta");
 class UniChar {
     constructor() {
         // 当前ID
-        this.id = 40;
+        this.id = 48;
     }
 
     /**
      * 获取下一个字符
      *
-     * unicode可见字符 5088个
-     * [40-126]      87个字符：  ()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+     * unicode可见字符 5080个
+     * [48-126]      79个字符：  0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
      * [20000-25000] 5001个字符：汉字
      * @returns {string}
      */
@@ -140,6 +140,51 @@ class Ot {
      */
     invert(ops) {
         return type.invert(ops);
+    }
+
+    /**
+     * 压缩 RID操作 为 包含 U 的操作
+     * @param ops {[]} 操作
+     */
+    compress(ops) {
+        let compressOps = [];
+        if (ops.length >= 2 && ops.length <= 3) {
+            let r = null, i = null, d = null;
+            // 取出每一类操作
+            ops.forEach(op => {
+                if (op.r !== undefined) {
+                    r = op.r;
+                } else if (op.i !== undefined) {
+                    i = op.i;
+                } else if (op.d !== undefined) {
+                    d = op.d;
+                }
+            })
+            // 是否包含I操作、D操作
+            if (i === null || d === null) {
+                return null;
+            }
+            if (r !== null) {
+                compressOps.push({r: r});
+            }
+            // 如果 Insert 长度 > Delete 长度，则压缩为 RUI 操作
+            if (i.length > d.length) {
+                compressOps.push({u: [d, i.substr(0, d.length)]});
+                compressOps.push({i: i.substr(d.length, i.length)})
+            }
+            // 如果 Insert 长度 < Delete 长度，则压缩为 RUD 操作
+            else if (i.length < d.length) {
+                compressOps.push({u: [d.substr(0, i.length), i]});
+                compressOps.push({d: d.substr(i.length, d.length)});
+            }
+            // 如果 Insert 长度 = Delete 长度，则压缩为 RU 操作
+            else {
+                compressOps.push({u: [d, i]});
+            }
+        } else {
+            compressOps = null;
+        }
+        return compressOps;
     }
 }
 
