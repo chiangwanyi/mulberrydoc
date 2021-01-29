@@ -9,7 +9,11 @@
     },
     "dependencies": {
         "core-js": "^3.6.5",
-        "vue": "^2.6.11"
+        "vue": "^2.6.11",
+        "ot-json1": "^1.0.1",
+        "ot-text-unicode": "^4.0.0",
+        "quill-delta": "^4.2.2",
+        "wangeditor": "^4.6.4"
     },
     "devDependencies": {
         "@vue/cli-plugin-babel": "~4.5.0",
