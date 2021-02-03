@@ -5,7 +5,7 @@
 </template>
 
 <script>
-    import RichText from "./views/RichText";
+    import RichText from "./views/RichText"   ;
 
     export default {
         name: "App",

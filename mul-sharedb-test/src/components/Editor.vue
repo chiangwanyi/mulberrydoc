@@ -10,10 +10,11 @@
 </template>
 
 <script>
-    import * as StringUtils from "../util/StringUtils";
-    import TimeUtils from "../util/TimeUtils";
+    import * as StringUtils from "../util/stringUtils";
+    import TimeUtils from "../util/timeUtils";
     import Log from "../util/log";
     import Ot from "../util/ot2";
+    // import E from "../util/wangEditor"
     import E from "wangeditor";
 
     // 强制同步数据上限尝试次数
@@ -52,6 +53,32 @@
                     document.getElementById("container").innerHTML = StringUtils.strToUtf16(this.getDocData());
                     // 创建编辑器实例
                     this.editor = new E('#container');
+
+                    this.editor.config.menus = [
+                        'head',
+                        'bold',
+                        'fontSize',
+                        'fontName',
+                        'italic',
+                        'underline',
+                        'strikeThrough',
+                        'indent',
+                        'foreColor',
+                        'backColor',
+                        'link',
+                        'list',
+                        'todo',
+                        'justify',
+                        'quote',
+                        'emoticon',
+                        'image',
+                        'video',
+                        'table',
+                        'code',
+                    ]
+
+                    this.editor.config.showFullScreen = false;
+
                     // 监听本地变更
                     this.editor.config.onchange = this.handleChange;
                     // this.editor.config.onchangeTimeout = 1000;

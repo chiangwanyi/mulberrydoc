@@ -1,55 +1,63 @@
 {
-  "name": "mul-sharedb-test",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
-  },
-  "dependencies": {
-    "core-js": "^3.6.5",
-    "marked": "^1.2.7",
-    "ot-json1": "^1.0.1",
-    "ot-text-unicode": "^4.0.0",
-    "vue": "^2.6.11",
-    "wangeditor": "^4.6.3"
-  },
-  "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-plugin-eslint": "~4.5.0",
-    "@vue/cli-service": "~4.5.0",
-    "babel-eslint": "^10.1.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^6.2.2",
-    "vue-template-compiler": "^2.6.11",
-    "@teamwork/websocket-json-stream": "^2.0.0",
-    "browserify": "^17.0.0",
-    "quill": "^1.3.7",
-    "reconnecting-websocket": "^4.2.0",
-    "rich-text": "^4.0.0",
-    "sharedb": "^1.0.0-beta",
-    "sharedb-mongo": "^1.0.0-beta.14",
-    "sharedb-string-binding": "^1.0.0",
-    "ws": "^7.2.0"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
+    "name": "mul-sharedb-test",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "serve": "vue-cli-service serve",
+        "build": "vue-cli-service build",
+        "lint": "vue-cli-service lint"
     },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
-    "parserOptions": {
-      "parser": "babel-eslint"
+    "dependencies": {
+        "core-js": "^3.6.5",
+        "marked": "^1.2.7",
+        "ot-json1": "^1.0.1",
+        "ot-text-unicode": "^4.0.0",
+        "quill-delta": "^4.2.2",
+        "vue": "^2.6.11",
+        "wangeditor": "^4.6.4"
     },
-    "rules": {}
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead"
-  ]
+    "devDependencies": {
+        "@teamwork/websocket-json-stream": "^2.0.0",
+        "@types/quill": "^2.0.4",
+        "@vue/cli-plugin-babel": "~4.5.0",
+        "@vue/cli-plugin-eslint": "~4.5.0",
+        "@vue/cli-service": "~4.5.0",
+        "babel-eslint": "^10.1.0",
+        "browserify": "^17.0.0",
+        "eslint": "^6.7.2",
+        "eslint-plugin-vue": "^6.2.2",
+        "quill": "^1.3.7",
+        "reconnecting-websocket": "^4.2.0",
+        "rich-text": "^4.0.0",
+        "sharedb": "^1.0.0-beta",
+        "sharedb-mongo": "^1.0.0-beta.14",
+        "sharedb-string-binding": "^1.0.0",
+        "tern": "^0.24.3",
+        "vue-template-compiler": "^2.6.11",
+        "ws": "^7.2.0"
+    },
+    "eslintConfig": {
+        "root": true,
+        "env": {
+            "node": true
+        },
+        "extends": [
+            "plugin:vue/essential",
+            "eslint:recommended"
+        ],
+        "parserOptions": {
+            "parser": "babel-eslint"
+        },
+        "rules": {
+            "semi": [
+                "error",
+                "always"
+            ]
+        }
+    },
+    "browserslist": [
+        "> 1%",
+        "last 2 versions",
+        "not dead"
+    ]
 }
