@@ -18,10 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
 
@@ -213,7 +210,7 @@ public class DocumentsApi
      * @param obj 参数（UserId, Folder实体）
      * @return HttpResponse
      */
-    @PostMapping("updateFolder")
+    @PatchMapping("updateFolder")
     public HttpResponse updateFolder(@RequestBody Map<String, Object> obj)
     {
         LOG.info("【修改文件夹】参数：{}", obj);
@@ -222,9 +219,10 @@ public class DocumentsApi
         Folder updateFolder = PojoGenerator.generate(obj.get(PARAM_FOLDER), Folder.class);
         if (StringUtils.isEmpty(uid) || Objects.isNull(updateFolder) || StringUtils.isEmpty(updateFolder.getHash()))
         {
-            LOG.warn("【修改文件夹】参数不完整");
+            LOG.warn("【修改文件夹】参数不完整，folder:{}", updateFolder);
             return HttpSerializer.incompleteParamsFailed(instance);
         }
+        LOG.info("【修改文件夹】待修改的文件夹数据：{}", updateFolder);
         try
         {
             boolean result = folderService.updateFolder(uid, updateFolder);
@@ -233,11 +231,17 @@ public class DocumentsApi
                 return HttpSerializer.success(instance)
                         .msg(FolderConstant.UPDATE_FOLDERS_SUCCESS);
             }
+            else
+            {
+                return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
+                        .msg(FolderError.UPDATE_FOLDER_IGNORE);
+            }
         }
         catch (WebException e)
         {
-            e.printStackTrace();
+            LOG.error("【修改文件夹】修改文件夹时发生异常，error:", e);
+            return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
+                    .msg(e);
         }
-        return null;
     }
 }

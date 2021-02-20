@@ -83,7 +83,7 @@ public class FolderDao
         folder = new Folder(hash, parentFolder, name, path);
 
         Query query = new Query();
-        query.addCriteria(Criteria.where("uid").is(uid));
+        query.addCriteria(Criteria.where(PARAM_UID).is(uid));
         Update update = new Update().push("folderList", folder);
         mongo.updateFirst(query, update, Documents.class);
         return folder;
@@ -94,7 +94,7 @@ public class FolderDao
      *
      * @param uid          用户ID
      * @param updateFolder 更新的信息
-     * @return
+     * @return 结果
      */
     public boolean updateFolder(String uid, Folder updateFolder) throws WebException
     {
@@ -110,11 +110,14 @@ public class FolderDao
             throw new WebException(FolderError.UPDATE_ROOT_FOLDER_FAILED);
         }
         Query query = new Query();
-        query.addCriteria(Criteria.where("uid").is(uid).and("folderList.hash").is(oldFolder.getHash()));
+        query.addCriteria(Criteria.where(PARAM_UID).is(uid).and("folderList.hash").is(oldFolder.getHash()));
 
         Update update = new Update();
+        // 文件夹被修改
         boolean flag = false;
-        boolean nameFlag = false;
+        // 文件夹路径被修改
+        boolean pathFlag = false;
+
         // 处理 收藏标记
         Boolean updateFavorite = updateFolder.getFavorite();
         if (Objects.nonNull(updateFavorite) && !Objects.equals(updateFavorite, oldFolder.getFavorite()))
@@ -122,62 +125,51 @@ public class FolderDao
             flag = true;
             update.set("folderList.$.isFavorite", updateFavorite);
         }
-        // 处理 父文件夹
-        String updateParentHash = updateFolder.getParentHash();
-        if (Objects.nonNull(updateParentHash) && !Objects.equals(updateParentHash, oldFolder.getParentHash()))
-        {
-            Folder parentFolder = queryFolderByHash(uid, updateParentHash);
-            if (Objects.nonNull(parentFolder))
-            {
-                update.set("folderList.$.parentHash", parentFolder.getHash());
-                // 处理 文件夹名称
-                String updateName = updateFolder.getName();
-                if (Objects.nonNull(updateName) && !Objects.equals(updateName, oldFolder.getName()))
-                {
 
-                }
-                else
-                {
-                    
-                }
+        // 一次修改操作，文件夹名称 和 父文件夹 修改只能存在一种
+
+        String updateFolderName = updateFolder.getName();
+        String updateFolderParentHash = updateFolder.getParentHash();
+        // 处理 文件夹名称
+        if (!StringUtils.isEmpty(updateFolderName)
+                && !Objects.equals(updateFolderName, oldFolder.getName())
+                && !isExistedFolderName(uid, updateFolderName, oldFolder.getParentHash()))
+        {
+            flag = true;
+            pathFlag = true;
+            update.set("folderList.$.name", updateFolderName);
+
+            oldFolder.setName(updateFolderName);
+        }
+        // 处理 文件夹的父文件夹
+        else if (!StringUtils.isEmpty(updateFolderParentHash)
+                && !Objects.equals(updateFolderParentHash, oldFolder.getParentHash()))
+        {
+            flag = true;
+            pathFlag = true;
+            update.set("folderList.$.parentHash", updateFolderParentHash);
+
+            oldFolder.setParentHash(updateFolderParentHash);
+        }
+
+        // 如果文件夹的路径需要修改
+        if (pathFlag)
+        {
+            Folder currentParentFolder = queryFolderByHash(uid, oldFolder.getParentHash());
+            flag = true;
+            // 如果父文件夹是否根目录
+            if (Objects.equals(currentParentFolder.getPath(), DocumentsConstant.ROOT_FOLDER_PATH))
+            {
+                update.set("folderList.$.path", FolderConstant.FOLDER_PATH_SEPARATOR + oldFolder.getName());
             }
             else
             {
-                throw new WebException(FolderError.PARENT_FOLDER_NON_EXISTENT);
+                update.set("folderList.$.path",
+                           currentParentFolder.getPath() + FolderConstant.FOLDER_PATH_SEPARATOR + oldFolder.getName());
             }
         }
 
-        // 处理 文件夹名称
-        String updateName = updateFolder.getName();
-        if (Objects.nonNull(updateName) && !Objects.equals(updateName, oldFolder.getName()))
-        {
-            flag = true;
-            nameFlag = true;
-            String oldName = oldFolder.getName();
-            String oldPath = oldFolder.getPath();
-            update.set("folderList.$.name", updateName);
-            update.set("folderList.$.path", oldPath.substring(0, oldPath.length() - oldName.length()) + updateName);
-        }
-        // 处理 父文件夹
-        String updateParentHash = updateFolder.getParentHash();
-        if (Objects.nonNull(updateParentHash) && !Objects.equals(updateParentHash, oldFolder.getParentHash()))
-        {
-            Folder parentFolder = queryFolderByHash(uid, updateParentHash);
-            if (Objects.nonNull(parentFolder))
-            {
-                update.set("folderList.$.parentHash", parentFolder.getHash());
-                // 修改了名称
-                if (nameFlag)
-                {
-                    update.set("folderList.$.name", updateName);
-                    update.set("folderList.$.path", parentFolder.getPath() + FolderConstant.FOLDER_PATH_SEPARATOR + updateName);
-                }
-                else
-                {
-                    update.set("folderList.$.path", parentFolder.getPath() + FolderConstant.FOLDER_PATH_SEPARATOR + oldFolder.getName());
-                }
-            }
-        }
+        // 如果修改了原始数据
         if (flag)
         {
             update.set("folderList.$.updatedAt", DateUtil.nowDatetime());

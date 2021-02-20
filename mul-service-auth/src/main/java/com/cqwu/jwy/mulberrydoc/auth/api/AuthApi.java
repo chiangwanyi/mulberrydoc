@@ -81,6 +81,7 @@ public class AuthApi
             LOG.warn("【用户注册】校验字段不通过");
             return HttpSerializer.invalidParamsFailed(instance, errorInfo);
         }
+
         User user;
         try
         {

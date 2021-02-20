@@ -136,15 +136,22 @@ public class DocumentsController
     /**
      * 修改文件夹
      *
-     * @param obj     参数（Folder对象）
+     * @param body    参数（Folder对象）
      * @param request HttpServletRequest
      * @return 结果
      */
     @RequireLogin
     @PatchMapping("/documents")
-    public Object updateFolder(@RequestBody Map<String, Object> obj, HttpServletRequest request)
+    public Object updateFolder(@RequestBody Map<String, Object> body, HttpServletRequest request)
     {
-        LOG.info("【DocumentsController】查询父文件夹下的所有子文件夹");
-        return 1;
+        LOG.info("【DocumentsController】修改文件夹");
+        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
+        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
+        LOG.info("【DocumentsController】用户ID:{}", userId);
+        Map<String, Object> obj = new HashMap<>();
+        obj.put("uid", userId);
+        obj.put("folder", body.get("folder"));
+        HttpResponse res = remote.patch(ServiceConst.DOCUMENTS_SERVICE, "updateFolder", obj);
+        return ResponseUtil.response(res, instance);
     }
 }

@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Objects;
+
 /**
  * 远程调用连接器
  */
@@ -95,6 +97,42 @@ public class RemoteConnector
         try
         {
             return restTemplate.postForObject(url(service, method), obj, responseType);
+        }
+        catch (Exception e)
+        {
+            LOG.error("请求时发生错误，error：", e);
+            return null;
+        }
+    }
+
+    /**
+     * PATCH请求
+     *
+     * @param service 服务名
+     * @param method  方法名
+     * @param obj     传入参数
+     * @return HttpResponse
+     */
+    public HttpResponse patch(String service, String method, Object obj)
+    {
+        return patch(service, method, obj, HttpResponse.class);
+    }
+
+    /**
+     * PATCH请求 - 自定义返回值
+     *
+     * @param service      服务名
+     * @param method       方法名
+     * @param obj          传入参数
+     * @param responseType 返回值类型
+     * @param <T>          泛型
+     * @return 返回值
+     */
+    public <T> T patch(String service, String method, Object obj, Class<T> responseType)
+    {
+        try
+        {
+            return restTemplate.patchForObject(url(service, method), obj, responseType);
         }
         catch (Exception e)
         {
