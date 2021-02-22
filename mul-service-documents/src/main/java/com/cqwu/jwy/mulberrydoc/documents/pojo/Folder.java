@@ -21,8 +21,6 @@ public class Folder
     /** 文件夹 名称 */
     @Rule(name = "名称")
     private String name;
-    /** 文件夹 完整路径 */
-    private String path;
     /** 是否标记为 收藏 */
     private Boolean isFavorite;
     /** 文件Hash 列表 */
@@ -45,25 +43,13 @@ public class Folder
         this.deletedAt = null;
     }
 
-    /**
-     * 创建根目录
-     *
-     * @param hash 根目录 标识
-     */
-    public Folder(String hash)
-    {
-        this();
-        this.hash = hash;
-        this.path = DocumentsConstant.ROOT_FOLDER_PATH;
-    }
 
-    public Folder(String hash, Folder parentFolder, String folderName, String path)
+    public Folder(String hash, String parentHash, String folderName)
     {
         this();
         this.hash = hash;
-        this.parentHash = parentFolder.getHash();
+        this.parentHash = parentHash;
         this.name = folderName;
-        this.path = path;
     }
 
     @Override
@@ -109,16 +95,6 @@ public class Folder
     public void setName(String name)
     {
         this.name = name;
-    }
-
-    public String getPath()
-    {
-        return path;
-    }
-
-    public void setPath(String path)
-    {
-        this.path = path;
     }
 
     public Boolean getFavorite()
@@ -178,7 +154,6 @@ public class Folder
                 "hash='" + hash + '\'' +
                 ", parentHash='" + parentHash + '\'' +
                 ", name='" + name + '\'' +
-                ", path='" + path + '\'' +
                 ", isFavorite=" + isFavorite +
                 ", fileList=" + fileList +
                 ", createdAt=" + createdAt +

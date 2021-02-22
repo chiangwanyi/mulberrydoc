@@ -136,7 +136,7 @@ public class DocumentsController
     /**
      * 修改文件夹
      *
-     * @param body    参数（Folder对象）
+     * @param body    参数
      * @param request HttpServletRequest
      * @return 结果
      */
@@ -151,7 +151,30 @@ public class DocumentsController
         Map<String, Object> obj = new HashMap<>();
         obj.put("uid", userId);
         obj.put("folder", body.get("folder"));
-        HttpResponse res = remote.patch(ServiceConst.DOCUMENTS_SERVICE, "updateFolder", obj);
+        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "updateFolder", obj);
         return ResponseUtil.response(res, instance);
     }
+
+    /**
+     * 移除文件夹
+     *
+     * @param body    参数
+     * @param request HttpServletRequest
+     * @return 结果
+     */
+    @RequireLogin
+    @DeleteMapping("/documents")
+    public Object removeFolder(@RequestBody Map<String, Object> body, HttpServletRequest request)
+    {
+        LOG.info("【DocumentsController】移除文件夹");
+        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
+        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
+        LOG.info("【DocumentsController】用户ID:{}", userId);
+        Map<String, Object> obj = new HashMap<>();
+        obj.put("uid", userId);
+        obj.put("hash", body.get("hash"));
+        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "removeFolder", obj);
+        return ResponseUtil.response(res, instance);
+    }
+
 }

@@ -15,7 +15,9 @@ public enum FolderError implements ErrorMsg
     /***/
     UPDATE_FOLDER_IGNORE(5, "无修改内容"),
     /***/
-    EMPTY_FOLDER_NAME(6, "文件夹名称不能为空");
+    EMPTY_FOLDER_NAME(6, "文件夹名称不能为空"),
+    /***/
+    REMOVE_FOLDER_FAILED(7, "移除文件夹失败");
 
     private final Integer code;
     private final String message;

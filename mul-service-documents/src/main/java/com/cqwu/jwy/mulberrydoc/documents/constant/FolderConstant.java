@@ -9,6 +9,8 @@ public final class FolderConstant
     /***/
     public static final String UPDATE_FOLDERS_SUCCESS = "修改文件夹成功";
     /***/
+    public static final String REMOVE_FOLDERS_SUCCESS = "移除文件夹成功";
+    /***/
     public static final String FOLDER_PATH_SEPARATOR = "/";
 
     private FolderConstant()

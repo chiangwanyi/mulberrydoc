@@ -53,7 +53,7 @@ public class FolderService
     }
 
     /**
-     * 修改文件夹信息
+     * 修改文件夹
      *
      * @param uid          用户ID
      * @param updateFolder 修改信息
@@ -63,5 +63,18 @@ public class FolderService
     public boolean updateFolder(String uid, Folder updateFolder) throws WebException
     {
         return folderDao.updateFolder(uid, updateFolder);
+    }
+
+    /**
+     * 移除文件夹
+     *
+     * @param uid  用户ID
+     * @param hash 文件夹Hash
+     * @return 结果
+     * @throws WebException 异常
+     */
+    public boolean removeFolder(String uid, String hash) throws WebException
+    {
+        return folderDao.removeFolder(uid, hash);
     }
 }

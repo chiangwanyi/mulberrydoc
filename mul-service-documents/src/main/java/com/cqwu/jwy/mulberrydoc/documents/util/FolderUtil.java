@@ -12,11 +12,11 @@ public final class FolderUtil
      * 生成文件夹 Hash
      *
      * @param uid  用户 ID
-     * @param path 文件夹路径
+     * @param parentHash 文件夹路径
      * @return 文件夹标识
      */
-    public static String generateFolderHash(String uid, String path)
+    public static String generateFolderHash(String uid, String parentHash, String name)
     {
-        return CodecUtil.md5((uid + ":folder:" + path).getBytes());
+        return CodecUtil.md5(String.format("%s:folder:%s:%s", uid, parentHash, name).getBytes());
     }
 }

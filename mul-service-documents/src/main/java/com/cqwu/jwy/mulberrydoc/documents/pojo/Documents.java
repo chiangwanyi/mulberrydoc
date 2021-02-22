@@ -17,17 +17,14 @@ public class Documents
     private List<Folder> folderList;
 
     /**
-     * 创建文档空间，并创建根目录
+     * 创建文档空间
      *
      * @param uid 用户 ID
      */
     public Documents(String uid)
     {
         this.uid = uid;
-        Folder folder = new Folder(FolderUtil.generateFolderHash(uid, DocumentsConstant.ROOT_FOLDER_PATH));
-        List<Folder> folderList = new ArrayList<>();
-        folderList.add(folder);
-        this.folderList = folderList;
+        this.folderList = new ArrayList<>();
     }
 
     public String getUid()

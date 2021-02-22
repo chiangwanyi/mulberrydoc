@@ -125,7 +125,7 @@ public class DocumentsApi
     }
 
     /**
-     * 根据父文件夹Hash查找子文件夹
+     * 根据父文件夹Hash查找所有子文件夹
      *
      * @param obj 参数（UserId, ParentFolderHash）
      * @return HttpResponse
@@ -210,7 +210,7 @@ public class DocumentsApi
      * @param obj 参数（UserId, Folder实体）
      * @return HttpResponse
      */
-    @PatchMapping("updateFolder")
+    @PostMapping("updateFolder")
     public HttpResponse updateFolder(@RequestBody Map<String, Object> obj)
     {
         LOG.info("【修改文件夹】参数：{}", obj);
@@ -241,6 +241,45 @@ public class DocumentsApi
         {
             LOG.error("【修改文件夹】修改文件夹时发生异常，error:", e);
             return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
+                    .msg(e);
+        }
+    }
+
+    /**
+     * 移除文件夹
+     *
+     * @param obj 参数（UserId, FolderHash）
+     * @return HttpResponse
+     */
+    @PostMapping("removeFolder")
+    public HttpResponse removeFolder(@RequestBody Map<String, Object> obj)
+    {
+        LOG.info("【移除文件夹】参数：{}", obj);
+        String uid = (String) obj.get(PARAM_UID);
+        String hash = (String) obj.get(PARAM_HASH);
+        if (StringUtils.isEmpty(uid) || StringUtils.isEmpty(hash))
+        {
+            LOG.warn("【移除文件夹】参数不完整，folderHash:{}", hash);
+            return HttpSerializer.incompleteParamsFailed(instance);
+        }
+        try
+        {
+            boolean res = folderService.removeFolder(uid, hash);
+            if (res)
+            {
+                return HttpSerializer.success(instance)
+                        .msg(FolderConstant.REMOVE_FOLDERS_SUCCESS);
+            }
+            else
+            {
+                return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
+                        .msg(FolderError.REMOVE_FOLDER_FAILED);
+            }
+        }
+        catch (WebException e)
+        {
+            LOG.error("【移除文件夹】移除文件夹时发生异常，error:", e);
+            return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
                     .msg(e);
         }
     }
