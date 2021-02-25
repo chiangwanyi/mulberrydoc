@@ -11,8 +11,10 @@ import com.cqwu.jwy.mulberrydoc.documents.constant.DocumentsError;
 import com.cqwu.jwy.mulberrydoc.documents.constant.FolderConstant;
 import com.cqwu.jwy.mulberrydoc.documents.constant.FolderError;
 import com.cqwu.jwy.mulberrydoc.documents.pojo.Documents;
+import com.cqwu.jwy.mulberrydoc.documents.pojo.File;
 import com.cqwu.jwy.mulberrydoc.documents.pojo.Folder;
 import com.cqwu.jwy.mulberrydoc.documents.service.DocumentsService;
+import com.cqwu.jwy.mulberrydoc.documents.service.FileService;
 import com.cqwu.jwy.mulberrydoc.documents.service.FolderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,6 +44,8 @@ public class DocumentsApi
     private DocumentsService documentsService;
     @Autowired
     private FolderService folderService;
+    @Autowired
+    private FileService fileService;
     @Autowired
     private DocumentsInstance instance;
 
@@ -112,9 +117,13 @@ public class DocumentsApi
                 return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
                         .msg(FolderError.FOLDER_NON_EXISTENT);
             }
+            List<File> files = fileService.queryFiles(uid, folder.getHash());
+            Map<String, Object> res = new HashMap<>();
+            res.put("folder", folder);
+            res.put("files", files);
             return HttpSerializer.success(instance)
                     .msg(FolderConstant.QUERY_FOLDERS_SUCCESS)
-                    .data(folder);
+                    .data(res);
         }
         catch (WebException e)
         {

@@ -23,6 +23,20 @@ public class File
     /** 文件名称 */
     @Rule(name = "文件名称")
     private String name;
+    /**
+     * 文件读写状态
+     * 0: R  只读
+     * 1: RW 可读写
+     */
+    private Integer rwStatus;
+    /**
+     * 文件所属状态
+     * 0：private   私有
+     * 1：public    公开
+     * 2：friend    好友共享
+     * 3：group:xxx 小组共享
+     */
+    private Integer ownership;
     /** 创建时间 */
     private Date createdAt;
     /** 修改时间 */
@@ -40,6 +54,8 @@ public class File
         this.folderHash = folder;
         this.type = type;
         this.name = name;
+        this.rwStatus = FileRwStatus.RW.getValue();
+        this.ownership = FileOwnership.PRIVATE.getValue();
         this.createdAt = DateUtil.nowDatetime();
         this.updatedAt = this.createdAt;
         this.deletedAt = null;
@@ -93,6 +109,26 @@ public class File
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    public Integer getRwStatus()
+    {
+        return rwStatus;
+    }
+
+    public void setRwStatus(Integer rwStatus)
+    {
+        this.rwStatus = rwStatus;
+    }
+
+    public Integer getOwnership()
+    {
+        return ownership;
+    }
+
+    public void setOwnership(Integer ownership)
+    {
+        this.ownership = ownership;
     }
 
     public Date getCreatedAt()

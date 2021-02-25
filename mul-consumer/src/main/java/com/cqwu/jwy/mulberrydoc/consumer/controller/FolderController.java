@@ -61,6 +61,28 @@ public class FolderController
     }
 
     /**
+     * 查询文件夹信息
+     *
+     * @param folderHash 文件夹Hash
+     * @param request    HttpServletRequest
+     * @return 结果
+     */
+    @RequireLogin
+    @GetMapping("/folder/{folderHash}")
+    public Object queryFolder(@PathVariable String folderHash, HttpServletRequest request)
+    {
+        LOG.info("【FolderController】查询文件夹");
+        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
+        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
+        LOG.info("【FolderController】用户ID:{}", userId);
+        Map<String, Object> obj = new HashMap<>();
+        obj.put("uid", userId);
+        obj.put("hash", folderHash);
+        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "queryFolder", obj);
+        return ResponseUtil.response(res, instance);
+    }
+
+    /**
      * 修改文件夹
      *
      * @param body    参数

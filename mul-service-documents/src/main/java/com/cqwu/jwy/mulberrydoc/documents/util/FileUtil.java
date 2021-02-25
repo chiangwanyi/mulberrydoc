@@ -10,12 +10,15 @@ public final class FileUtil
     }
 
     /**
-     * 生成文件 Hash
-     *
-     * @return 文件夹标识
+     * 生成文件Hash
+     * @param uid 用户ID
+     * @param folderHash 文件夹Hash
+     * @param type 文件类型
+     * @param name 文件名称
+     * @return 文件Hash
      */
-    public static String generateFolderHash(File info)
+    public static String generateFolderHash(String uid, String folderHash, String type, String name)
     {
-        return CodecUtil.md5(String.format("%s:%s:%s:%s", info.getUid(), info.getFolderHash(), info.getType(), info.getName()).getBytes());
+        return CodecUtil.md5(String.format("%s:%s:%s:%s", uid, folderHash, type, name).getBytes());
     }
 }

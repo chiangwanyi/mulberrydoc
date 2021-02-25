@@ -19,18 +19,20 @@ public interface FileDao
     /** 列名-字段名 映射 */
     String SELECT_SQL = " `hash` hash, "
             + "`uid` uid, "
-            + "`folderHash` folderHash, "
+            + "`folder_hash` folderHash, "
             + "`type` type, "
             + "`name` name, "
+            + "`rw_status` rwStatus, "
+            + "`ownership` ownership, "
             + "`created_at` createdAt, "
             + "`updated_at` updatedAt, "
             + "`deleted_at` deletedAt ";
 
     /** 插入列 */
-    String INSERT_COLUMN_SQL = " (hash, uid, folderHash, type, name, created_at, updated_at) ";
+    String INSERT_COLUMN_SQL = " (hash, uid, folder_hash, type, name, rw_status, ownership, created_at, updated_at) ";
 
     /** 插入字段 */
-    String INSERT_FILED_SQL = " (#{hash}, #{uid}, #{folderHash}, #{type}, #{name}, #{createdAt}, #{updatedAt}) ";
+    String INSERT_FILED_SQL = " (#{hash}, #{uid}, #{folderHash}, #{type}, #{name}, #{rwStatus}, #{ownership}, #{createdAt}, #{updatedAt}) ";
 
     /**
      * 创建文件
@@ -56,6 +58,6 @@ public interface FileDao
      * @param folderHash 文件夹Hash
      * @return 文件列表
      */
-    @Select("select" + SELECT_SQL + "from" + TABLE_NAME + "where uid = #{uid} and folderHash = #{folderHash}")
+    @Select("select" + SELECT_SQL + "from" + TABLE_NAME + "where uid = #{arg0} and folder_hash = #{arg1}")
     List<File> queryFiles(String uid, String folderHash);
 }
