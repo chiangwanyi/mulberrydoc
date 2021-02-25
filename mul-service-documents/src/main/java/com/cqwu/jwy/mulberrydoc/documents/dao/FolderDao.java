@@ -1,20 +1,14 @@
 package com.cqwu.jwy.mulberrydoc.documents.dao;
 
-import com.alibaba.fastjson.JSONObject;
 import com.cqwu.jwy.mulberrydoc.common.exception.WebException;
 import com.cqwu.jwy.mulberrydoc.common.util.DateUtil;
-import com.cqwu.jwy.mulberrydoc.documents.api.DocumentsApi;
 import com.cqwu.jwy.mulberrydoc.documents.constant.DocumentsConstant;
 import com.cqwu.jwy.mulberrydoc.documents.constant.DocumentsError;
 import com.cqwu.jwy.mulberrydoc.documents.constant.FolderError;
 import com.cqwu.jwy.mulberrydoc.documents.pojo.Documents;
 import com.cqwu.jwy.mulberrydoc.documents.pojo.Folder;
 import com.cqwu.jwy.mulberrydoc.documents.util.FolderUtil;
-import com.mongodb.BasicDBObject;
-import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
-import org.bson.BasicBSONObject;
-import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +18,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import sun.util.locale.provider.LocaleServiceProviderPool;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -190,6 +183,31 @@ public class FolderDao
             }
         }
         return res;
+    }
+
+    /**
+     * 添加文件
+     *
+     * @param uid        用户ID
+     * @param folderHash 文件夹标识
+     * @param fileHash   文件标识
+     * @return 结果
+     * @throws WebException 异常
+     */
+    public boolean addFile(String uid, String folderHash, String fileHash) throws WebException
+    {
+        // 查询文件夹
+        Folder folder = queryFolderByHash(uid, folderHash);
+        if (Objects.isNull(folder))
+        {
+            throw new WebException(FolderError.FOLDER_NON_EXISTENT);
+        }
+        Query query = new Query();
+        query.addCriteria(Criteria.where(PARAM_UID).is(uid).and("folderList.hash").is(folderHash));
+        Update update = new Update();
+        update.push("folderList.$.fileList", fileHash);
+        UpdateResult result = mongo.updateFirst(query, update, Documents.class);
+        return result.getModifiedCount() > 0L;
     }
 
     /**

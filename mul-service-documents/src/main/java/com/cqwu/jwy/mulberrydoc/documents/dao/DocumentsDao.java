@@ -21,7 +21,7 @@ public class DocumentsDao
      *
      * @param uid 用户ID
      */
-    public void create(String uid)
+    public void createDocuments(String uid)
     {
         Documents documents = new Documents(uid);
         mongoTemplate.insert(documents);

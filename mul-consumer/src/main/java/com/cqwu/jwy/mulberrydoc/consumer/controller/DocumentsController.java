@@ -37,7 +37,6 @@ public class DocumentsController
 
     private RemoteConnector remote;
 
-
     @PostConstruct
     public void init()
     {
@@ -64,7 +63,7 @@ public class DocumentsController
      * @param obj 参数（UserId）
      * @return 结果
      */
-    @PostMapping("/documents/createDocuments")
+    @PostMapping("/documents")
     public Object createDocuments(@RequestBody Map<String, Object> obj)
     {
         LOG.info("【DocumentsController】创建文档空间");
@@ -93,26 +92,6 @@ public class DocumentsController
     }
 
     /**
-     * 新建文件夹
-     *
-     * @param obj     参数（Folder对象）
-     * @param request HttpServletRequest
-     * @return 结果
-     */
-    @RequireLogin
-    @PostMapping("/documents")
-    public Object createFolder(@RequestBody Map<String, Object> obj, HttpServletRequest request)
-    {
-        LOG.info("【DocumentsController】创建文件夹");
-        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
-        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
-        LOG.info("【DocumentsController】用户ID:{}", userId);
-        obj.put("uid", userId);
-        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "createFolder", obj);
-        return ResponseUtil.response(res, instance);
-    }
-
-    /**
      * 查询父文件夹下的所有子文件夹
      *
      * @param parentHash 父文件夹 Hash
@@ -132,49 +111,4 @@ public class DocumentsController
         HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "querySubfolder", obj);
         return ResponseUtil.response(res, instance);
     }
-
-    /**
-     * 修改文件夹
-     *
-     * @param body    参数
-     * @param request HttpServletRequest
-     * @return 结果
-     */
-    @RequireLogin
-    @PatchMapping("/documents")
-    public Object updateFolder(@RequestBody Map<String, Object> body, HttpServletRequest request)
-    {
-        LOG.info("【DocumentsController】修改文件夹");
-        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
-        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
-        LOG.info("【DocumentsController】用户ID:{}", userId);
-        Map<String, Object> obj = new HashMap<>();
-        obj.put("uid", userId);
-        obj.put("folder", body.get("folder"));
-        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "updateFolder", obj);
-        return ResponseUtil.response(res, instance);
-    }
-
-    /**
-     * 移除文件夹
-     *
-     * @param body    参数
-     * @param request HttpServletRequest
-     * @return 结果
-     */
-    @RequireLogin
-    @DeleteMapping("/documents")
-    public Object removeFolder(@RequestBody Map<String, Object> body, HttpServletRequest request)
-    {
-        LOG.info("【DocumentsController】移除文件夹");
-        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
-        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
-        LOG.info("【DocumentsController】用户ID:{}", userId);
-        Map<String, Object> obj = new HashMap<>();
-        obj.put("uid", userId);
-        obj.put("hash", body.get("hash"));
-        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "removeFolder", obj);
-        return ResponseUtil.response(res, instance);
-    }
-
 }

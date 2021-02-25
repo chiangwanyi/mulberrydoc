@@ -33,9 +33,9 @@ public class DocumentsApi
 {
     private static final Logger LOG = LoggerFactory.getLogger(DocumentsApi.class);
     private static final String PARAM_UID = "uid";
+    private static final String PARAM_FOLDER = "folder";
     private static final String PARAM_PARENT_HASH = "parentHash";
     private static final String PARAM_HASH = "hash";
-    private static final String PARAM_FOLDER = "folder";
 
     @Autowired
     private DocumentsService documentsService;

@@ -21,7 +21,7 @@ public class DocumentsService
      */
     public void createDocument(String uid)
     {
-        documentsDao.create(uid);
+        documentsDao.createDocuments(uid);
     }
 
     /**

@@ -1,8 +1,5 @@
 package com.cqwu.jwy.mulberrydoc.documents.pojo;
 
-import com.cqwu.jwy.mulberrydoc.documents.constant.DocumentsConstant;
-import com.cqwu.jwy.mulberrydoc.documents.util.FolderUtil;
-
 import java.util.ArrayList;
 import java.util.List;
 

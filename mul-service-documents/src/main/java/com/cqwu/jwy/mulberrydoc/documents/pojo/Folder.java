@@ -4,6 +4,7 @@ import com.cqwu.jwy.mulberrydoc.common.util.DateUtil;
 import com.cqwu.jwy.mulberrydoc.common.validator.Rule;
 import com.cqwu.jwy.mulberrydoc.documents.constant.DocumentsConstant;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +39,7 @@ public class Folder
     public Folder()
     {
         this.isFavorite = false;
+        this.fileList = new ArrayList<>();
         this.createdAt = DateUtil.nowDatetime();
         this.updatedAt = this.createdAt;
         this.deletedAt = null;
@@ -50,6 +52,7 @@ public class Folder
         this.hash = hash;
         this.parentHash = parentHash;
         this.name = folderName;
+        this.fileList = new ArrayList<>();
     }
 
     @Override
