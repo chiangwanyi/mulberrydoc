@@ -33,13 +33,16 @@ public class FileService
      */
     public File createFile(String uid, File info) throws WebException
     {
-        String fileHash = FileUtil.generateFolderHash(uid, info.getFolderHash(), info.getType(), info.getName());
+        String folderHash = info.getFolderHash();
+        String type = info.getType();
+        String name = info.getName();
+        String fileHash = FileUtil.generateFolderHash(uid, folderHash, type, name);
         // 判断文件是否存在
-        if (isExistedFile(uid, fileHash))
+        if (isExistedFile(uid, folderHash, type, name))
         {
             throw new WebException(FileError.FILE_ALREADY_EXISTENT);
         }
-        File file = new File(uid, info.getFolderHash(), info.getType(), info.getName());
+        File file = new File(uid, folderHash, type, name);
         if (Objects.nonNull(info.getRwStatus()))
         {
             file.setRwStatus(info.getRwStatus());
@@ -68,17 +71,21 @@ public class FileService
     }
 
 
-
     /**
      * 判断文件是否存在
      *
-     * @param uid      用户ID
-     * @param fileHash 文件Hash
+     * @param uid        用户ID
+     * @param folderHash 文件Hash
+     * @param type       文件类型
+     * @param name       文件名称
      * @return 结果
      */
-    public boolean isExistedFile(String uid, String fileHash)
+    public boolean isExistedFile(String uid, String folderHash, String type, String name)
     {
-        List<File> files = fileDao.queryAllFiles(uid);
-        return files.stream().anyMatch(file -> Objects.equals(file.getHash(), fileHash));
+        // 对应文件夹下的所有文件
+        List<File> files = fileDao.queryFiles(uid, folderHash);
+        return files.stream()
+                .map(file -> String.format("%s:%s", file.getType(), file.getName()))
+                .anyMatch(str -> Objects.equals(str, String.format("%s:%s", type, name)));
     }
 }
