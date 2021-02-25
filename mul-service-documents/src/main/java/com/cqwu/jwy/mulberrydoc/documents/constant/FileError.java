@@ -5,7 +5,9 @@ import com.cqwu.jwy.mulberrydoc.common.exception.ErrorMsg;
 public enum FileError implements ErrorMsg
 {
     /***/
-    FILE_ALREADY_EXISTENT(1, "文件已存在");
+    FILE_ALREADY_EXISTENT(1, "文件已存在"),
+    /***/
+    CREATE_FILE_FAILED(2, "创建文件失败");
 
     private final Integer code;
     private final String message;

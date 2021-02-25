@@ -1,7 +1,12 @@
 package com.cqwu.jwy.mulberrydoc.documents.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.cqwu.jwy.mulberrydoc.common.exception.WebException;
+import com.cqwu.jwy.mulberrydoc.common.serializer.HttpSerializer;
+import com.cqwu.jwy.mulberrydoc.common.serializer.response.HttpResponse;
 import com.cqwu.jwy.mulberrydoc.common.util.DateUtil;
+import com.cqwu.jwy.mulberrydoc.common.util.HttpURLConnectionUtil;
 import com.cqwu.jwy.mulberrydoc.documents.constant.FileError;
 import com.cqwu.jwy.mulberrydoc.documents.dao.FileDao;
 import com.cqwu.jwy.mulberrydoc.documents.dao.FolderDao;
@@ -11,7 +16,10 @@ import com.cqwu.jwy.mulberrydoc.documents.util.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -54,7 +62,26 @@ public class FileService
         file.setHash(fileHash);
         fileDao.insert(file);
         folderDao.addFile(uid, file.getFolderHash(), fileHash);
-        return file;
+        Map<String, Object> data = new HashMap<>();
+        data.put("key", "73FB6FB50711641F153F1F09D04B6F8A");
+        data.put("file", file);
+        try
+        {
+            String res = HttpURLConnectionUtil.post("http://localhost:9003/api/file", JSON.parseObject(JSONObject.toJSONString(data)));
+            HttpResponse response = JSONObject.parseObject(res, HttpResponse.class);
+            if (response.getStatus() == HttpSerializer.STATUS_OK)
+            {
+                return file;
+            }
+            else
+            {
+                throw new WebException(FileError.CREATE_FILE_FAILED);
+            }
+        }
+        catch (IOException e)
+        {
+            throw new WebException(FileError.CREATE_FILE_FAILED);
+        }
     }
 
     /**
