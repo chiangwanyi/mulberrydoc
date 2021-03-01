@@ -3,7 +3,7 @@
         <el-row type="flex" justify="space-between">
             <el-col :lg="14" :xl="14">
                 <el-button type="primary" size="small" icon="el-icon-upload">上传</el-button>
-                <el-button type="primary" size="small" icon="el-icon-plus" @click="createFormVisible = true">新建
+                <el-button size="small" icon="el-icon-plus" @click="createFormVisible = true">新建
                 </el-button>
                 <el-button-group class="btn-group" v-show="selectedItemHash !== null && selectedItemHash.length > 0">
                     <el-button size="small" icon="el-icon-share">分享</el-button>
@@ -60,8 +60,8 @@
 </template>
 
 <script>
-    import * as FolderAPI from "../api/folder";
-    import Folder from "../module/entity/Folder";
+    // import * as FolderAPI from "../api/folder";
+    // import Folder from "../module/entity/Folder";
 
     export default {
         name: "DocumentsTools",
@@ -76,10 +76,10 @@
                 if (!value) {
                     return callback(new Error('名称不能为空'));
                 }
-                let find = this.data.find(item => item.name === value);
-                if (find !== undefined) {
-                    return callback(new Error('该文件/文件夹已存在'));
-                }
+                // let find = this.data.find(item => item.name === value);
+                // if (find !== undefined) {
+                //     return callback(new Error('该文件/文件夹已存在'));
+                // }
                 callback();
             }
             return {
@@ -125,37 +125,38 @@
              * 创建 Item
              */
             createItem() {
-                this.$refs['createForm'].validate(valid => {
-                    if (valid) {
-                        this.onCreate = true;
-                        if (this.createForm.type === "folder") {
-                            FolderAPI.createFolder({
-                                parentHash: this.currentFolder.hash,
-                                name: this.createForm.name
-                            })
-                                .then(r => {
-                                    let res = r.data;
-                                    console.log(res)
-                                    this.onCreate = false;
-                                    this.createFormVisible = false;
-                                    this.$emit("addItem", new Folder(
-                                        res.data.hash,
-                                        res.data.parentHash,
-                                        res.data.name,
-                                        res.data.path,
-                                        res.data.depth,
-                                        res.data.isFavorite,
-                                        res.data.fileList,
-                                        res.data.createdAt,
-                                        res.data.updatedAt,
-                                        res.data.deletedAt
-                                    ));
-                                })
-                        }
-                    } else {
-                        return false;
-                    }
-                });
+                console.log("pass")
+                // this.$refs['createForm'].validate(valid => {
+                //     if (valid) {
+                //         this.onCreate = true;
+                //         if (this.createForm.type === "folder") {
+                //             FolderAPI.createFolder({
+                //                 parentHash: this.currentFolder.hash,
+                //                 name: this.createForm.name
+                //             })
+                //                 .then(r => {
+                //                     let res = r.data;
+                //                     console.log(res)
+                //                     this.onCreate = false;
+                //                     this.createFormVisible = false;
+                //                     this.$emit("addItem", new Folder(
+                //                         res.data.hash,
+                //                         res.data.parentHash,
+                //                         res.data.name,
+                //                         res.data.path,
+                //                         res.data.depth,
+                //                         res.data.isFavorite,
+                //                         res.data.fileList,
+                //                         res.data.createdAt,
+                //                         res.data.updatedAt,
+                //                         res.data.deletedAt
+                //                     ));
+                //                 })
+                //         }
+                //     } else {
+                //         return false;
+                //     }
+                // });
             },
             /**
              * 移除 Item
@@ -170,7 +171,8 @@
                         type: 'success',
                         message: '移除成功!'
                     });
-                }).catch(() => {
+                }).catch((e) => {
+                    console.error(e)
                 });
             }
         },

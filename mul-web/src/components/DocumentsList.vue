@@ -4,7 +4,9 @@
                 :data="data"
                 stripe
                 :default-sort="{prop: 'name', order: 'ascending'}"
-                @selection-change="handleSelectionChange">
+                :row-style="{cursor: 'pointer'}"
+                @selection-change="handleSelectionChange"
+                @row-click="handleRowClick">
             <el-table-column type="selection">
             </el-table-column>
             <el-table-column
@@ -13,7 +15,7 @@
                     label="名称">
                 <template slot-scope="scope">
                     <div class="list-item-cell">
-                        <img v-show="ready" src="../assets/folder.svg" alt="">
+                        <img v-show="ready" :src="getIcon(scope.row.type)" alt="">
                         <p :class="{'skeleton': !ready}">{{scope.row.name}}</p>
                     </div>
                 </template>
@@ -24,7 +26,7 @@
                     label="最后修改时间">
                 <template slot-scope="scope">
                     <div class="list-item-cell">
-                        <p :class="{'skeleton': !ready}">{{scope.row.updatedAt}}</p>
+                        <p :class="{'skeleton': !ready}">{{scope.row.updatedAt | dateFormatter}}</p>
                     </div>
                 </template>
             </el-table-column>
@@ -34,7 +36,7 @@
                     label="创建时间">
                 <template slot-scope="scope">
                     <div class="list-item-cell">
-                        <p :class="{'skeleton': !ready}">{{scope.row.createdAt}}</p>
+                        <p :class="{'skeleton': !ready}">{{scope.row.createdAt | dateFormatter}}</p>
                     </div>
                 </template>
             </el-table-column>
@@ -45,9 +47,35 @@
 <script>
     export default {
         name: "DocumentList",
+        data() {
+            return {
+                icon: {
+                    folder: require("../assets/folder.svg"),
+                    folderFavorite: require("../assets/folder-favorite.svg"),
+                    doc: require("../assets/word.svg"),
+                    chart: require("../assets/xchart.svg")
+                }
+            }
+        },
         methods: {
             handleSelectionChange(val) {
                 this.$emit("selectItem", val);
+            },
+            handleRowClick(val) {
+                this.$emit("clickItem", val)
+            },
+            getIcon(type) {
+                if (type === "folder") {
+                    return this.icon.folder
+                }
+                if (type === "doc") {
+                    return this.icon.doc
+                }
+            }
+        },
+        filters: {
+            dateFormatter(date) {
+                return new Date(date).toLocaleString();
             }
         },
         props: ["data", "ready"]

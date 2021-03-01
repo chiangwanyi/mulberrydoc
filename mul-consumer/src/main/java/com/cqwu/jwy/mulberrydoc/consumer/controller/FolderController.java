@@ -18,6 +18,7 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 public class FolderController
@@ -79,6 +80,28 @@ public class FolderController
         obj.put("uid", userId);
         obj.put("hash", folderHash);
         HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "queryFolder", obj);
+        return ResponseUtil.response(res, instance);
+    }
+
+    /**
+     * 查询文件夹路径
+     *
+     * @param folderHash 文件夹Hash
+     * @param request    HttpServletRequest
+     * @return 结果
+     */
+    @RequireLogin
+    @GetMapping("/folder/path/{folderHash}")
+    public Object getFolderPath(@PathVariable String folderHash, HttpServletRequest request)
+    {
+        LOG.info("【FolderController】查询文件夹路径");
+        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
+        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
+        LOG.info("【FolderController】用户ID:{}", userId);
+        Map<String, Object> obj = new HashMap<>();
+        obj.put("uid", userId);
+        obj.put("hash", folderHash);
+        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "getFolderPath", obj);
         return ResponseUtil.response(res, instance);
     }
 

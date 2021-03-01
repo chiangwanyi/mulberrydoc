@@ -11,6 +11,8 @@ public final class FolderConstant
     /***/
     public static final String REMOVE_FOLDERS_SUCCESS = "移除文件夹成功";
     /***/
+    public static final String GET_FOLDER_PATH_SUCCESS = "获取文件夹路径成功";
+    /***/
     public static final String FOLDER_PATH_SEPARATOR = "/";
 
     private FolderConstant()

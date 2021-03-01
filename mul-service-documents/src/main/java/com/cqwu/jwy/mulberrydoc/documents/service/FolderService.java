@@ -52,6 +52,19 @@ public class FolderService
     }
 
     /**
+     * 获取文件夹的路径
+     *
+     * @param uid        用户ID
+     * @param folderHash 文件夹Hash
+     * @return 文件夹路径
+     * @throws WebException 异常
+     */
+    public List<String> getFolderPath(String uid, String folderHash) throws WebException
+    {
+        return folderDao.getFolderPath(uid, folderHash);
+    }
+
+    /**
      * 修改文件夹
      *
      * @param uid          用户ID

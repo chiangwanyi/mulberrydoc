@@ -292,4 +292,36 @@ public class DocumentsApi
                     .msg(e);
         }
     }
+
+    /**
+     * 获取文件夹路径
+     *
+     * @param obj 参数（UserId, FolderHash）
+     * @return HttpResponse
+     */
+    @PostMapping("getFolderPath")
+    public HttpResponse getFolderPath(@RequestBody Map<String, Object> obj)
+    {
+        LOG.info("【获取文件夹路径】参数：{}", obj);
+        String uid = (String) obj.get(PARAM_UID);
+        String folderHash = (String) obj.get(PARAM_HASH);
+        if (StringUtils.isEmpty(uid) || StringUtils.isEmpty(folderHash))
+        {
+            LOG.warn("【获取文件夹路径】参数不完整，folderHash:{}", folderHash);
+            return HttpSerializer.incompleteParamsFailed(instance);
+        }
+        try
+        {
+            List<String> folderPath = folderService.getFolderPath(uid, folderHash);
+            return HttpSerializer.success(instance)
+                    .msg(FolderConstant.GET_FOLDER_PATH_SUCCESS)
+                    .data(folderPath);
+        }
+        catch (WebException e)
+        {
+            LOG.error("【获取文件夹路径】获取文件夹路径时发生异常，error:", e);
+            return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
+                    .msg(e);
+        }
+    }
 }

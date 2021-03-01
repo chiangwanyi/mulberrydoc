@@ -98,6 +98,7 @@ public class DocumentsController
      * @param request    HttpServletRequest
      * @return 结果
      */
+    @RequireLogin
     @GetMapping("/documents/{parentHash}")
     public Object querySubfolder(@PathVariable String parentHash, HttpServletRequest request)
     {

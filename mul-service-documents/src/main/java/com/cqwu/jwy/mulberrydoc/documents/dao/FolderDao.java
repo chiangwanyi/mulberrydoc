@@ -328,6 +328,59 @@ public class FolderDao
     }
 
     /**
+     * 获取文件夹的路径
+     *
+     * @param uid        用户ID
+     * @param folderHash 文件夹Hash
+     * @return 文件夹路径
+     * @throws WebException 异常
+     */
+    public List<String> getFolderPath(String uid, String folderHash) throws WebException
+    {
+        // 查询文档空间
+        Documents documents = documentsDao.queryDocumentsByUserId(uid);
+        if (Objects.nonNull(documents))
+        {
+            if (Objects.equals(folderHash, DocumentsConstant.ROOT_FOLDER_HASH_ALIAS))
+            {
+                return new ArrayList<>();
+            }
+            // 所有文件夹
+            List<Folder> allFolders = documents.getFolderList().stream()
+                    .filter(folder -> Objects.isNull(folder.getDeletedAt()))
+                    .collect(Collectors.toList());
+            Optional<Folder> currentFolderOpt = allFolders.stream()
+                    .filter(folder -> Objects.equals(folder.getHash(), folderHash))
+                    .findFirst();
+            if (currentFolderOpt.isPresent())
+            {
+                List<String> folderNameList = new ArrayList<>();
+                Folder currentFolder = currentFolderOpt.get();
+                folderNameList.add(currentFolder.getName());
+                while (!Objects.equals(currentFolder.getParentHash(), DocumentsConstant.ROOT_FOLDER_HASH_ALIAS))
+                {
+                    for (Folder folder : allFolders)
+                    {
+                        if (Objects.equals(folder.getHash(), currentFolder.getParentHash()))
+                        {
+                            currentFolder = folder;
+                            folderNameList.add(currentFolder.getName());
+                            break;
+                        }
+                    }
+                }
+                Collections.reverse(folderNameList);
+                return folderNameList;
+            }
+            else
+            {
+                throw new WebException(FolderError.FOLDER_NON_EXISTENT);
+            }
+        }
+        throw new WebException(DocumentsError.DOCUMENTS_NON_EXISTENT);
+    }
+
+    /**
      * 检查文件夹名称是否存在
      *
      * @param uid        用户ID

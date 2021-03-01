@@ -1,15 +1,18 @@
 import Vue from "vue";
-import VueRouter, { RouteConfig } from "vue-router";
+import VueRouter, {RouteConfig} from "vue-router";
+
 import Home from "../views/Home.vue";
 import Authentication from "../views/Authentication.vue";
+import Documents from "../views/Documents.vue";
+import Doc from "../views/Doc.vue";
 
 Vue.use(VueRouter);
 
 const routes: Array<RouteConfig> = [
     {
-        path: "/",
-        name: "Home",
-        component: Home,
+        path: '/',
+        name: 'Home',
+        redirect: '/documents',
     },
     {
         path: "/about",
@@ -17,10 +20,20 @@ const routes: Array<RouteConfig> = [
         component: () => import("../views/About.vue"),
     },
     {
+        path: '/documents*',
+        name: 'Documents',
+        component: Documents,
+    },
+    {
         path: "/auth",
         name: "Authentication",
         component: Authentication,
     },
+    {
+        path:"/doc",
+        name:"Doc",
+        component: Doc
+    }
 ];
 
 const router = new VueRouter({

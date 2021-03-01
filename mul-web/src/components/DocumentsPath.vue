@@ -1,40 +1,52 @@
 <template>
     <el-row id="documents-path">
-        <el-row type="flex">
+        <el-row type="flex" v-show="ready">
             <el-link type="primary" disabled>返回上一级</el-link>
             <p>|</p>
             <el-breadcrumb separator-class="el-icon-arrow-right">
-                <el-breadcrumb-item>全部文件</el-breadcrumb-item>
-                <el-breadcrumb-item>活动列表</el-breadcrumb-item>
-                <el-breadcrumb-item>活动详情</el-breadcrumb-item>
+                <el-breadcrumb-item>根目录</el-breadcrumb-item>
+                <el-breadcrumb-item v-for="item in path" :key="item">{{item}}</el-breadcrumb-item>
             </el-breadcrumb>
         </el-row>
     </el-row>
 </template>
 
 <script>
+    import DocumentsApi from "@/api/documents";
+
     export default {
         name: "DocumentsPath",
         data() {
             return {
-                pathList: [],
-                currentPath: this.path
+                path: []
+            }
+        },
+        methods: {
+            setFolderPath() {
+                DocumentsApi.getFolderPath(this.currentFolderHash)
+                    .then(r => {
+                        const res = r.data;
+                        if (res.status === 200) {
+                            this.path = res.data;
+                        }
+                    })
             }
         },
         created() {
-            // console.log(this.path);
-            // if (this.path !== "/") {
-            //     let tmp = this.path.split("/");
-            //     this.pathList = tmp.slice(1, tmp.length);
-            // }
+            this.setFolderPath();
         },
-        // props: ['path', 'folders']
+        watch: {
+            currentFolderHash() {
+                this.setFolderPath();
+            }
+        },
+        props: ['currentFolderHash', 'ready']
     }
 </script>
 
 <style lang="scss" scoped>
     #documents-path {
-        margin: 8px 0;
+        margin: 10px 0;
 
         .el-link {
             font-size: 14px;
