@@ -5,6 +5,12 @@ type folder = {
     name: string;
 }
 
+type file = {
+    folderHash: string;
+    type: string;
+    name: string;
+}
+
 class DocumentsApi {
     /**
      * 查询父文件夹下的所有子文件夹
@@ -45,6 +51,16 @@ class DocumentsApi {
     static createFolder(folder: folder) {
         return axios.post(`/api/folder`, {
             folder: folder
+        })
+    }
+
+    /**
+     * 创建文件
+     * @param file 文件信息
+     */
+    static createFile(file: file) {
+        return axios.post(`/api/file`, {
+            file: file
         })
     }
 }

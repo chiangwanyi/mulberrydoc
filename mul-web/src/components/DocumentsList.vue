@@ -3,7 +3,6 @@
         <el-table
                 :data="data"
                 stripe
-                :default-sort="{prop: 'name', order: 'ascending'}"
                 :row-style="{cursor: 'pointer'}"
                 @selection-change="handleSelectionChange"
                 @row-click="handleRowClick">

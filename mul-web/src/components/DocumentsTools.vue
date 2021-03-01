@@ -157,6 +157,28 @@
                                     this.$message.error(res.msg.message);
                                 }
                             })
+                        } else if (this.createForm.type === "doc") {
+                            DocumentsApi.createFile({
+                                folderHash: this.currentFolderHash,
+                                name: this.createForm.name,
+                                type: this.createForm.type
+                            }).then(r => {
+                                let res = r.data
+                                if (res.status === 200) {
+                                    this.createFormVisible = false;
+                                    this.$emit("refresh");
+                                    this.$message({
+                                        message: res.msg,
+                                        type: 'success'
+                                    });
+                                    this.createForm = {
+                                        type: "",
+                                        name: ""
+                                    }
+                                } else {
+                                    this.$message.error(res.msg.message);
+                                }
+                            })
                         }
                         this.onCreate = false;
                     } else {

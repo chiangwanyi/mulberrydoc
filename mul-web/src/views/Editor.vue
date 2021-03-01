@@ -37,7 +37,7 @@
                 if (!StringUtil.isEmpty(this.uid)) {
                     // 连接服务
                     this.socket = new ReconnectingWebSocket(
-                        `ws://localhost:9003`
+                        `ws://192.168.31.123:9003`
                     );
                     // 连接 sharedb
                     const connection = new sharedb.Connection(this.socket);
@@ -94,10 +94,10 @@
                                     let res = r.data;
                                     if (res.status === 200) {
                                         let file = res.data;
-                                        if (file.uid === this.uid) {
+                                        // if (file.uid === this.uid) {
                                             this.file = file;
                                             this.connectServer();
-                                        }
+                                        // }
                                     }
                                 })
                         }

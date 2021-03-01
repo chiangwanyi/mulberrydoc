@@ -106,6 +106,7 @@
 
                 // 当前最新的数据
                 let newContainer = document.createElement("div");
+                console.log(this.getDocData())
                 newContainer.innerHTML = StringUtil.strToUtf16(this.getDocData());
                 // 当前页面的数据
                 let oldContainer = document.getElementById(this.editor.textElemId);
@@ -121,7 +122,7 @@
 
                 let map = Ot.stringsMap(oldValue, newValue);
                 console.log(map);
-                let diff = Ot.completeDiff(map.aliasA, map.aliasB);
+                let diff = Ot.completeDiff(map.aliasB, map.aliasA);
                 // console.log(Log.prefix(TimeUtils.fullTimeString(), mn), `原始操作：${JSON.stringify(diff)}`);
 
                 if (diff.length !== 0) {
@@ -129,12 +130,12 @@
                         let compressOps = Ot.compress(diff);
                         if (compressOps !== null) {
                             diff = compressOps;
-                            // console.log(Log.prefix(TimeUtils.fullTimeString(), mn), `压缩操作：${JSON.stringify(compressOps)}`);
+                            console.log(`压缩操作：${JSON.stringify(compressOps)}`);
                         } else {
-                            // console.log(Log.prefix(TimeUtils.fullTimeString(), mn), "不压缩，直接提交");
+                            console.log("不压缩，直接提交");
                         }
                     } else {
-                        // console.log(Log.prefix(TimeUtils.fullTimeString(), mn), "复杂操作，非更新式提交");
+                        console.log("复杂操作，非更新式提交");
                     }
 
                     this.updateFlag = true;
