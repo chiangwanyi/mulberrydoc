@@ -13,7 +13,7 @@ class File {
      * @param {string} type 文件类型
      * @param {string} file_hash 文件Hash
      */
-    static createFile(type, file_hash, callback) {
+    static createFile(type, file_hash, doc_type, callback) {
         try {
             let doc = this.connection.get(type, file_hash);
             switch (type) {
@@ -28,7 +28,7 @@ class File {
                                 text: "<p><br></p>",
                             },
                         ],
-                    });
+                    }, doc_type);
                 }
             }
             callback(null);

@@ -27,6 +27,7 @@ public class FileApi
     private static final Logger LOG = LoggerFactory.getLogger(FileApi.class);
     private static final String PARAM_UID = "uid";
     private static final String PARAM_FILE = "file";
+    private static final String PARAM_FILE_HASH = "hash";
 
     @Autowired
     private DocumentsInstance instance;
@@ -78,6 +79,45 @@ public class FileApi
         catch (Exception e)
         {
             LOG.error("【创建文件】创建失败，error:", e);
+            return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
+                    .msg(e);
+        }
+    }
+
+    /**
+     * 查询文件
+     *
+     * @param obj 参数
+     * @return 结果
+     */
+    @PostMapping("queryFile")
+    public HttpResponse queryFile(@RequestBody Map<String, Object> obj)
+    {
+        LOG.info("【查询文件】参数：{}", obj);
+        // 用户ID
+        String hash = (String) obj.get(PARAM_FILE_HASH);
+        if (StringUtils.isEmpty(hash))
+        {
+            LOG.warn("【查询文件】参数不完整");
+            return HttpSerializer.incompleteParamsFailed(instance);
+        }
+
+        try
+        {
+            File file = fileService.queryFile(hash);
+            return HttpSerializer.success(instance)
+                    .msg(FileConstant.QUERY_FILE_SUCCESS)
+                    .data(file);
+        }
+        catch (WebException e)
+        {
+            LOG.error("【查询文件】创建失败，{}，error:", e.getErrorMsg(), e);
+            return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
+                    .msg(e);
+        }
+        catch (Exception e)
+        {
+            LOG.error("【查询文件】创建失败，error:", e);
             return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
                     .msg(e);
         }

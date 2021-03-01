@@ -4,7 +4,7 @@ import VueRouter, {RouteConfig} from "vue-router";
 import Home from "../views/Home.vue";
 import Authentication from "../views/Authentication.vue";
 import Documents from "../views/Documents.vue";
-import Doc from "../views/Doc.vue";
+import Editor from "../views/Editor.vue";
 
 Vue.use(VueRouter);
 
@@ -30,9 +30,9 @@ const routes: Array<RouteConfig> = [
         component: Authentication,
     },
     {
-        path:"/doc",
-        name:"Doc",
-        component: Doc
+        path:"/doc*",
+        name:"Editor",
+        component: Editor
     }
 ];
 

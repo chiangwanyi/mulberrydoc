@@ -90,7 +90,9 @@
                 if (item.type === "folder") {
                     this.$router.push(`/documents/${item.hash}`)
                 } else if (item.type === "doc") {
-                    this.$router.push(`/doc/${item.hash}`)
+                    window.open(this.$router.resolve({
+                        path: `/doc/${item.hash}`,
+                    }).href, '_blank');
                 }
             },
             updateCurrentFolder() {

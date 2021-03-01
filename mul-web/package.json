@@ -13,6 +13,7 @@
     "element-ui": "^2.15.0",
     "ot-json1": "^1.0.1",
     "quill-delta": "^4.2.2",
+    "reconnecting-websocket": "^4.4.0",
     "sharedb": "^1.7.0",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.3",

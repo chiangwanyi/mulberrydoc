@@ -49,7 +49,7 @@ app.post("/api/file", (req, res) => {
             data: {},
         });
     } else {
-        File.createFile(type, file_hash, (err) => {
+        File.createFile(type, file_hash, json1.type.uri, (err) => {
             if (err) {
                 res.status(401).json({
                     status: 401,
@@ -71,8 +71,8 @@ app.post("/api/file", (req, res) => {
 const wss = new WebSocket.Server({ noServer: true });
 
 wss.on("connection", (ws) => {
-    // let stream = new WebSocketJSONStream(ws);
-    // share.listen(stream);
+    let stream = new WebSocketJSONStream(ws);
+    share.listen(stream);
 });
 
 wss.on("close", () => {

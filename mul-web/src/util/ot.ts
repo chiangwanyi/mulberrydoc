@@ -1,4 +1,4 @@
-import { type } from "ot-text-unicode";
+import { TextOp, type } from "ot-text-unicode";
 import Delta from "quill-delta";
 
 /**
@@ -47,12 +47,9 @@ interface operation {
 /**
  * 简写操作
  */
-type op =
-    | number
-    | string
-    | {
-          d: string;
-      };
+type op = number | string | {
+    d: string;
+};
 
 /**
  * Operational Transformation
@@ -67,7 +64,7 @@ class Ot {
         let delta = new Delta().insert(b).diff(new Delta().insert(a));
         let op: operation[] = [];
         let index = 0;
-        delta.ops.forEach((el) => {
+        delta.ops.forEach(el => {
             if (el.retain !== undefined) {
                 op.push({ r: el.retain });
                 index += el.retain;
@@ -88,9 +85,11 @@ class Ot {
      */
     static diff(b: string, a: string): op[] {
         let delta = new Delta().insert(b).diff(new Delta().insert(a));
+        // console.log(delta);
+        // console.log(before, after);
         let ops: op[] = [];
         let index = 0;
-        delta.ops.forEach((el) => {
+        delta.ops.forEach(el => {
             if (el.retain !== undefined) {
                 ops.push(el.retain);
                 index += el.retain;
@@ -116,7 +115,7 @@ class Ot {
             let i: string = "";
             let d: string = "";
             // 取出每一类操作
-            ops.forEach((op) => {
+            ops.forEach(op => {
                 if (op.r !== undefined) {
                     r = op.r;
                 } else if (op.i !== undefined) {
@@ -124,7 +123,7 @@ class Ot {
                 } else if (op.d !== undefined) {
                     d = op.d;
                 }
-            });
+            })
             // 是否包含I操作、D操作
             if (i === "" || d === "") {
                 return null;
@@ -136,7 +135,7 @@ class Ot {
             // 如果 insert 长度 > delete 长度，则压缩为 RUI 操作
             if (i.length > d.length) {
                 compressOps.push({ u: [d, i.substr(0, d.length)] });
-                compressOps.push({ i: i.substr(d.length, i.length) });
+                compressOps.push({ i: i.substr(d.length, i.length) })
             }
             // 如果 insert 长度 < delete 长度，则压缩为 RUD 操作
             else if (i.length < d.length) {
@@ -169,7 +168,7 @@ class Ot {
         let aliasA = "";
 
         let unc = new uniqueChar();
-        bs.forEach((el) => {
+        bs.forEach(el => {
             let char;
             if (!stringToAliasMap.has(el)) {
                 char = unc.next();
@@ -178,9 +177,9 @@ class Ot {
                 char = stringToAliasMap.get(el);
             }
             aliasB += char;
-        });
+        })
 
-        as.forEach((el) => {
+        as.forEach(el => {
             let char;
             if (!stringToAliasMap.has(el)) {
                 char = unc.next();
@@ -189,11 +188,11 @@ class Ot {
                 char = stringToAliasMap.get(el);
             }
             aliasA += char;
-        });
+        })
 
         stringToAliasMap.forEach((v, k) => {
             aliasToStringMap.set(v, k);
-        });
+        })
         return { aliasB, aliasA, map: aliasToStringMap };
     }
 
@@ -219,4 +218,4 @@ class Ot {
     }
 }
 
-export { Ot, op, operation };
+export default Ot;

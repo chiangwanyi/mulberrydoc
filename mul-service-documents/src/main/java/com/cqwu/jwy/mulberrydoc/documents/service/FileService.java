@@ -97,6 +97,17 @@ public class FileService
         return fileDao.queryFiles(uid, folderHash);
     }
 
+    /**
+     * 查询文件
+     *
+     * @param fileHash 文件Hash
+     * @return 结果
+     * @throws WebException 异常
+     */
+    public File queryFile(String fileHash) throws WebException
+    {
+        return fileDao.queryFile(fileHash);
+    }
 
     /**
      * 判断文件是否存在

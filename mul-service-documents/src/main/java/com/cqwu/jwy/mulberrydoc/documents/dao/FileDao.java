@@ -52,6 +52,15 @@ public interface FileDao
     List<File> queryAllFiles(String uid);
 
     /**
+     * 查询文件
+     *
+     * @param hash 文件Hash
+     * @return 文件
+     */
+    @Select("select" + SELECT_SQL + "from" + TABLE_NAME + "where hash = #{hash}")
+    File queryFile(String hash);
+
+    /**
      * 查询用户指定文件夹的所有文件
      *
      * @param uid        用户ID
