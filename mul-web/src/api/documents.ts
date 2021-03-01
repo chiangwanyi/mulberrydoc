@@ -1,5 +1,10 @@
 import axios from "axios";
 
+type folder = {
+    parentHash: string;
+    name: string;
+}
+
 class DocumentsApi {
     /**
      * 查询父文件夹下的所有子文件夹
@@ -31,6 +36,16 @@ class DocumentsApi {
      */
     static queryFile(file_hash: string) {
         return axios.get(`/api/file/${file_hash}`)
+    }
+
+    /**
+     * 创建文件夹
+     * @param folder 文件夹信息
+     */
+    static createFolder(folder: folder) {
+        return axios.post(`/api/folder`, {
+            folder: folder
+        })
     }
 }
 

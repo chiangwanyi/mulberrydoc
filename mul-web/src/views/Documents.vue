@@ -1,10 +1,11 @@
 <template>
     <div id="documents">
-        <DocumentsTools :current-folder="currentFolder"
+        <DocumentsTools :current-folder-hash="currentFolderHash"
+                        :current-folder="currentFolder"
                         :data="data"
                         :selected-item-hash="selectedItemHash"
-                        @addItem="handleAddItem"></DocumentsTools>
-        <DocumentsPath :currentFolderHash="currentFolderHash"
+                        @refresh="updateCurrentFolder"></DocumentsTools>
+        <DocumentsPath :current-folder-hash="currentFolderHash"
                        :ready="ready"></DocumentsPath>
         <DocumentsList :data="data"
                        :ready="ready"
@@ -141,7 +142,9 @@
         },
         created() {
             this.updateCurrentFolder();
-            this.ready = true;
+            setTimeout(() => {
+                this.ready = true;
+            }, 500);
         },
         watch: {
             $route() {

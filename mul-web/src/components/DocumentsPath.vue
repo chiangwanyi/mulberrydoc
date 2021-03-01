@@ -1,7 +1,9 @@
 <template>
     <el-row id="documents-path">
         <el-row type="flex" v-show="ready">
-            <el-link type="primary" disabled>返回上一级</el-link>
+            <el-link type="primary" :disabled="currentFolderHash === '$root'"
+                     @click="toParentFolder()">返回上一级
+            </el-link>
             <p>|</p>
             <el-breadcrumb separator-class="el-icon-arrow-right">
                 <el-breadcrumb-item>根目录</el-breadcrumb-item>
@@ -18,6 +20,7 @@
         name: "DocumentsPath",
         data() {
             return {
+                folder: {},
                 path: []
             }
         },
@@ -25,11 +28,26 @@
             setFolderPath() {
                 DocumentsApi.getFolderPath(this.currentFolderHash)
                     .then(r => {
-                        const res = r.data;
+                        let res = r.data;
                         if (res.status === 200) {
-                            this.path = res.data;
+                            let nameList = res.data;
+                            if (nameList.length > 6) {
+                                this.path = nameList.slice(0, 5).concat(["...", nameList[nameList.length - 1]])
+                            } else {
+                                this.path = nameList;
+                            }
                         }
                     })
+                DocumentsApi.queryFolder(this.currentFolderHash)
+                    .then(r => {
+                        let res = r.data;
+                        if (res.status === 200) {
+                            this.folder = res.data.folder;
+                        }
+                    })
+            },
+            toParentFolder() {
+                this.$router.push(`/documents/${this.folder.parentHash}`)
             }
         },
         created() {
@@ -40,7 +58,7 @@
                 this.setFolderPath();
             }
         },
-        props: ['currentFolderHash', 'ready']
+        props: ['currentFolderHash', 'currentFolder', 'ready']
     }
 </script>
 

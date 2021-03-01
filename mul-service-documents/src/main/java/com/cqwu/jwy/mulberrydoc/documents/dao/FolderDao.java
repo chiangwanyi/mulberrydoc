@@ -62,16 +62,21 @@ public class FolderDao
                 throw new WebException(FolderError.PARENT_FOLDER_NON_EXISTENT);
             }
         }
-        // 待创建文件夹 Hash
-        String hash = FolderUtil.generateFolderHash(uid, parentHash, name);
-        // 再判断 待创建文件夹 是否存在
-        Folder folder = queryFolderByHash(uid, hash);
-        if (Objects.nonNull(folder))
+        boolean existed = isExistedFolderName(uid, name, parentHash);
+        if (existed)
         {
             throw new WebException(FolderError.FOLDER_ALREADY_EXISTENT);
         }
+        // 待创建文件夹 Hash
+        String hash = FolderUtil.generateFolderHash(uid, parentHash, name);
+//        // 再判断 待创建文件夹 是否存在
+//        Folder folder = queryFolderByHash(uid, hash);
+//        if (Objects.nonNull(folder))
+//        {
+//            throw new WebException(FolderError.FOLDER_ALREADY_EXISTENT);
+//        }
         // 创建文件夹
-        folder = new Folder(hash, parentHash, name);
+        Folder folder = new Folder(hash, parentHash, name);
 
         Query query = new Query();
         query.addCriteria(Criteria.where(PARAM_UID).is(uid));

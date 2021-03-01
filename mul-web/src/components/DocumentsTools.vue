@@ -36,9 +36,9 @@
                                     :value="item.value">
                                 <img v-if="item.value === 'folder'" class="create_icon" src="../assets/folder.svg"
                                      alt="">
-                                <img v-else-if="item.value === 'edoc'" class="create_icon" src="../assets/word.svg"
+                                <img v-else-if="item.value === 'doc'" class="create_icon" src="../assets/word.svg"
                                      alt="">
-                                <img v-else-if="item.value === 'echart'" class="create_icon" src="../assets/xchart.svg"
+                                <img v-else-if="item.value === 'chart'" class="create_icon" src="../assets/xchart.svg"
                                      alt="">
                                 <img v-else-if="item.value === 'markdown'" class="create_icon" src="../assets/ppt.svg"
                                      alt="">
@@ -63,12 +63,17 @@
     // import * as FolderAPI from "../api/folder";
     // import Folder from "../module/entity/Folder";
 
+    import DocumentsApi from "@/api/documents";
+
     export default {
         name: "DocumentsTools",
         data() {
             const validateType = (rule, value, callback) => {
                 if (!value) {
                     return callback(new Error('请选择类型'));
+                }
+                if (this.currentFolderHash === "$root" && value !== "folder") {
+                    return callback(new Error('根目录只能创建文件夹'));
                 }
                 callback();
             }
@@ -99,15 +104,18 @@
                     {
                         label: '文件',
                         options: [{
-                            value: 'edoc',
+                            value: 'doc',
                             label: '文档'
-                        }, {
-                            value: 'echart',
-                            label: '表格'
-                        }, {
-                            value: 'markdown',
-                            label: 'Markdown'
-                        }]
+                        }
+                            // , {
+                            //     value: 'chart',
+                            //     label: '表格'
+                            // }
+                            // , {
+                            //     value: 'markdown',
+                            //     label: 'Markdown'
+                            // }
+                        ]
                     }],
                 searchInfo: "",
                 createRules: {
@@ -125,38 +133,36 @@
              * 创建 Item
              */
             createItem() {
-                console.log("pass")
-                // this.$refs['createForm'].validate(valid => {
-                //     if (valid) {
-                //         this.onCreate = true;
-                //         if (this.createForm.type === "folder") {
-                //             FolderAPI.createFolder({
-                //                 parentHash: this.currentFolder.hash,
-                //                 name: this.createForm.name
-                //             })
-                //                 .then(r => {
-                //                     let res = r.data;
-                //                     console.log(res)
-                //                     this.onCreate = false;
-                //                     this.createFormVisible = false;
-                //                     this.$emit("addItem", new Folder(
-                //                         res.data.hash,
-                //                         res.data.parentHash,
-                //                         res.data.name,
-                //                         res.data.path,
-                //                         res.data.depth,
-                //                         res.data.isFavorite,
-                //                         res.data.fileList,
-                //                         res.data.createdAt,
-                //                         res.data.updatedAt,
-                //                         res.data.deletedAt
-                //                     ));
-                //                 })
-                //         }
-                //     } else {
-                //         return false;
-                //     }
-                // });
+                this.$refs['createForm'].validate(valid => {
+                    if (valid) {
+                        this.onCreate = true;
+                        if (this.createForm.type === "folder") {
+                            DocumentsApi.createFolder({
+                                parentHash: this.currentFolderHash,
+                                name: this.createForm.name
+                            }).then(r => {
+                                let res = r.data
+                                if (res.status === 200) {
+                                    this.createFormVisible = false;
+                                    this.$emit("refresh");
+                                    this.$message({
+                                        message: res.msg,
+                                        type: 'success'
+                                    });
+                                    this.createForm = {
+                                        type: "",
+                                        name: ""
+                                    }
+                                } else {
+                                    this.$message.error(res.msg.message);
+                                }
+                            })
+                        }
+                        this.onCreate = false;
+                    } else {
+                        return false;
+                    }
+                });
             },
             /**
              * 移除 Item
@@ -176,7 +182,7 @@
                 });
             }
         },
-        props: ["currentFolder", "data", "selectedItemHash"]
+        props: ["currentFolder", "currentFolderHash", "data", "selectedItemHash"]
     }
 </script>
 
