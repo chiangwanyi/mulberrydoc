@@ -1,6 +1,24 @@
 <template>
-    <div id="doc">
-        <div id="container"></div>
+    <div id="doc" v-if="ready">
+        <div id="top">
+            <div class="header">
+                <div style="display: flex;flex-grow: 1;justify-content: flex-start;align-items: center;">
+                    <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
+                    <p class="file-name" contenteditable="true">{{file.name}}</p>
+                    <i class="el-icon-circle-check" style="font-size: 14px;color: #cccccc">&nbsp;自动保存</i>
+                </div>
+                <div style="display: flex;flex-grow: 1;justify-content: flex-end;align-items: center;">
+                    <el-button type="default" size="mini">时间轴</el-button>
+                    <el-divider direction="vertical"></el-divider>
+                    <el-button type="default" size="mini">下载</el-button>
+                    <el-button type="default" size="mini">分享</el-button>
+                    <el-divider direction="vertical"></el-divider>
+                    <el-avatar :src="1"></el-avatar>
+                </div>
+            </div>
+            <div id="toolbar-container"></div>
+        </div>
+        <div id="text-container" :style="{minHeight: height}"></div>
     </div>
 </template>
 
@@ -16,6 +34,14 @@
         name: "Doc",
         data() {
             return {
+                icon: {
+                    folder: require("../../assets/folder.svg"),
+                    folderFavorite: require("../../assets/folder-favorite.svg"),
+                    doc: require("../../assets/word.svg"),
+                    chart: require("../../assets/xchart.svg")
+                },
+                height: `${document.documentElement.clientHeight}px`,
+                width: `${document.documentElement.clientWidth}px`,
                 // 监听编辑器内容变化锁
                 lock: true,
                 updateFlag: false,
@@ -40,11 +66,9 @@
             initEditor() {
                 if (this.editor === null) {
                     console.log("开始初始化编辑器");
-                    // 填充内容
-                    document.getElementById("container").innerHTML = StringUtil.strToUtf16(this.getDocData());
                     // 创建编辑器实例
-                    this.editor = new E('#container');
-
+                    this.editor = new E('#toolbar-container', '#text-container');
+                    // this.editor.config.height = this.height;
                     this.editor.config.menus = [
                         'head',
                         'bold',
@@ -67,14 +91,14 @@
                         'table',
                         'code',
                     ]
-
                     this.editor.config.showFullScreen = false;
-
                     // 监听本地变更
-                    this.editor.config.onchange = this.handleChange;
+                    // this.editor.config.onchange = this.handleChange;
                     // this.editor.config.onchangeTimeout = 1000;
                     this.editor.create();
+                    this.editor.txt.html(StringUtil.strToUtf16(this.getDocData()));
                     console.log(`编辑器初始化成功，500ms后解锁内容编辑`);
+                    return;
                     let updated = this.fillSeq();
                     if (updated) {
                         console.log(updated)
@@ -86,7 +110,6 @@
                         this.compositionListener();
                         // 启动状态监听器
                         this.startStatusListener();
-
                         this.lock = false;
                     }, 500);
                     // setInterval(() => {
@@ -491,10 +514,77 @@
         props: {
             doc: Object,
             uid: String,
+            file: Object,
+            ready: Boolean,
         }
     }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+    #doc {
+        background-color: #f9fafb;
+        padding-top: 100px;
 
+        #top {
+            z-index: 100000;
+            position: fixed;
+            background-color: #ffffff;
+
+            top: 0;
+            width: 100%;
+            margin-bottom: 10px;
+
+            .header {
+                height: 50px;
+                line-height: 50px;
+                padding: 0 20px;
+                display: flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                align-items: center;
+
+                p.file-name {
+                    outline: none;
+                    font-size: 20px;
+                    margin: 0 6px;
+                }
+
+                i {
+                    vertical-align: middle;
+                    cursor: pointer;
+                }
+
+                img.file-icon {
+                    vertical-align: middle;
+                    width: 34px;
+                    height: 34px;
+                    line-height: 50px;
+                }
+
+                input.file-name {
+                    vertical-align: middle;
+                    border: none;
+                    border-bottom: 1px solid #ccc;
+                    outline: none;
+                    padding: 0;
+                    width: 100px;
+                    height: 34px;
+                    font-size: 20px;
+                    display: inline-block;
+                }
+            }
+
+            #toolbar-container {
+                border: 1px solid #ccc;
+            }
+        }
+
+        #text-container {
+            background: #ffffff;
+            border: 1px solid #e8e6e6;
+            width: 50%;
+            padding: 40px;
+            margin: 0 auto;
+        }
+    }
 </style>

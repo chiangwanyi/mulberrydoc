@@ -1,6 +1,6 @@
 <template>
-    <div id="editor">
-        <Doc ref="editor" :doc="doc" :uid="uid"></Doc>
+    <div id="editor" :style="{ height: height }">
+        <Doc ref="editor" :doc="doc" :uid="uid" :file="file" :ready="ready"></Doc>
     </div>
 </template>
 
@@ -20,6 +20,7 @@
         name: "Editor",
         data() {
             return {
+                height: `${document.documentElement.clientHeight}px`,
                 uid: null,
                 type: "",
                 hash: "",
@@ -60,7 +61,10 @@
                             console.log("订阅文档成功");
                             // 如果未初始化，则初始化编辑器
                             if (!this.ready) {
-                                this.$refs.editor.initEditor();
+                                this.ready = true;
+                                setTimeout(()=>{
+                                    this.$refs.editor.initEditor();
+                                }, 500)
                                 this.doc.on("op", (op, source) => {
                                     if (!source) {
                                         console.log(`接收到操作\t op:${JSON.stringify(op)}\t source:${source}`);
@@ -111,5 +115,7 @@
 </script>
 
 <style scoped>
-
+    #editor {
+        height: 100%;
+    }
 </style>
