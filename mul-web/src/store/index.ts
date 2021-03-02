@@ -6,7 +6,7 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         user: {
-            username: "",
+            username: "万艺",
             avatar: "https://giler.oss-cn-chengdu.aliyuncs.com/avatar/ot_ia5Wq_7LGbNAiSbYevNmal_Dw.png"
         }
     },

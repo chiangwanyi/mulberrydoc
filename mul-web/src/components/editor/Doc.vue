@@ -5,7 +5,16 @@
                 <div style="display: flex;flex-grow: 1;justify-content: flex-start;align-items: center;">
                     <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
                     <p class="file-name" contenteditable="true">{{file.name}}</p>
-                    <i class="el-icon-circle-check" style="font-size: 14px;color: #cccccc">&nbsp;自动保存</i>
+                    <el-divider direction="vertical"></el-divider>
+                    <div style="display: flex;align-items: center;">
+                        <el-avatar size="small">1</el-avatar>
+                        <el-avatar size="small">2</el-avatar>
+                        <el-avatar size="small">3</el-avatar>
+                        <el-avatar size="small">4</el-avatar>
+                        <i class="el-icon-caret-bottom"></i>
+                    </div>
+                    <el-divider direction="vertical"></el-divider>
+                    <i class="el-icon-circle-check" style="font-size: 14px;color: #cccccc;border-bottom: 1px solid #ccc;">&nbsp;自动保存</i>
                 </div>
                 <div style="display: flex;flex-grow: 1;justify-content: flex-end;align-items: center;">
                     <el-button type="default" size="mini">时间轴</el-button>
@@ -13,7 +22,7 @@
                     <el-button type="default" size="mini">下载</el-button>
                     <el-button type="default" size="mini">分享</el-button>
                     <el-divider direction="vertical"></el-divider>
-                    <el-avatar :src="1"></el-avatar>
+                    <el-avatar>{{this.$store.state.user.username}}</el-avatar>
                 </div>
             </div>
             <div id="toolbar-container"></div>
@@ -93,12 +102,11 @@
                     ]
                     this.editor.config.showFullScreen = false;
                     // 监听本地变更
-                    // this.editor.config.onchange = this.handleChange;
+                    this.editor.config.onchange = this.handleChange;
                     // this.editor.config.onchangeTimeout = 1000;
                     this.editor.create();
                     this.editor.txt.html(StringUtil.strToUtf16(this.getDocData()));
                     console.log(`编辑器初始化成功，500ms后解锁内容编辑`);
-                    return;
                     let updated = this.fillSeq();
                     if (updated) {
                         console.log(updated)
@@ -129,7 +137,6 @@
 
                 // 当前最新的数据
                 let newContainer = document.createElement("div");
-                console.log(this.getDocData())
                 newContainer.innerHTML = StringUtil.strToUtf16(this.getDocData());
                 // 当前页面的数据
                 let oldContainer = document.getElementById(this.editor.textElemId);
@@ -144,10 +151,7 @@
                 }
 
                 let map = Ot.stringsMap(oldValue, newValue);
-                console.log(map);
                 let diff = Ot.completeDiff(map.aliasB, map.aliasA);
-                // console.log(Log.prefix(TimeUtils.fullTimeString(), mn), `原始操作：${JSON.stringify(diff)}`);
-
                 if (diff.length !== 0) {
                     if (diff.length <= 3) {
                         let compressOps = Ot.compress(diff);
@@ -162,7 +166,6 @@
                     }
 
                     this.updateFlag = true;
-                    // console.log(JSON.stringify(diff));
                     // 开始更新
                     let index = 0;
                     diff.forEach(op => {
@@ -324,11 +327,8 @@
                 }
 
                 let map = Ot.stringsMap(oldValue, newValue);
-                console.log(map);
                 // TODO 需要保存原始数据以便撤销
                 let diff = Ot.completeDiff(map.aliasB, map.aliasA);
-                console.log(diff)
-                // console.log(Log.prefix(TimeUtils.fullTimeString(), mn), `原始操作：${JSON.stringify(diff)}`);
                 // 存在差异
                 if (diff.length !== 0) {
                     if (diff.length <= 3) {
@@ -486,9 +486,7 @@
                 this.doc.submitOp(['data', index, {r: 0}]);
             },
             updateLine(index, oldText, newText) {
-                console.log(`${oldText} -> ${newText}`)
                 let diff = Ot.diff(StringUtil.utf16ToStr(oldText), StringUtil.utf16ToStr(newText));
-                console.log(['data', index, ['text', {es: diff}]])
                 this.doc.submitOp(['data', index, ['text', {es: diff}]]);
             },
             /**
