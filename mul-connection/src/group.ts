@@ -87,12 +87,13 @@ class Group {
         data: Message,
         connectionMap: Map<string, Connection>
     ) {
-        console.log(`socketId:${self} 广播消息`);
+        console.log(`socketId:${self} 广播消息：${data.text}`);
         this.members.forEach((socketId) => {
             if (socketId !== self) {
                 let connection = connectionMap.get(socketId);
                 if (connection !== undefined) {
                     connection.socket.emit("msg", data);
+                    this.messages.unshift(data);
                 }
             }
         });

@@ -63,18 +63,30 @@
                             if (!this.ready) {
                                 this.ready = true;
                                 setTimeout(() => {
-                                    this.$refs.editor.initEditor();
+                                    this.$refs.editor.initEditor()
+                                        .then(() => {
+                                            this.loading.close();
+                                            this.$refs.editor.show();
+                                            this.doc.on("op", (op, source) => {
+                                                if (!source) {
+                                                    console.log(`接收到操作\t op:${JSON.stringify(op)}\t source:${source}`);
+                                                    this.$refs.editor.syncData();
+                                                }
+                                            });
+                                        })
+                                        .catch(e => {
+                                            console.error(e);
+                                            this.$alert('打开文件失败，请重试', '错误', {
+                                                confirmButtonText: '重新加载',
+                                                callback: action => {
+                                                    if (action === "confirm") {
+                                                        window.location.reload();
+                                                    }
+                                                    this.loading.close();
+                                                }
+                                            });
+                                        });
                                 }, 500)
-                                setTimeout(() => {
-                                    this.loading.close();
-                                    this.$refs.editor.show();
-                                }, 1000)
-                                this.doc.on("op", (op, source) => {
-                                    if (!source) {
-                                        console.log(`接收到操作\t op:${JSON.stringify(op)}\t source:${source}`);
-                                        this.$refs.editor.syncData();
-                                    }
-                                });
                             }
                         } else {
                             console.error("读取文档数据失败");
@@ -94,7 +106,6 @@
                     let res = r.data;
                     if (res.status === 200) {
                         this.user = res.data;
-                        // this.uid = res.data.id;
                         const pattern = new RegExp("/([a-z]+)/(.{32})")
                         let exec = pattern.exec(this.$route.path);
                         let type = exec[1];

@@ -36,6 +36,7 @@
     import {StringUtil} from "@/util/tools";
     import Ot from "@/util/ot"
     import E from "wangeditor";
+    import {io} from "socket.io-client";
 
     // 强制同步数据上限尝试次数
     const forceSyncLimit = 20;
@@ -67,10 +68,45 @@
                 forceSyncCount: 0,
                 // 同步状态监听器
                 statusListener: null,
-                display: false
+                display: false,
+                listener: {
+
+                },
+                socket: null,
             }
         },
         methods: {
+            destroy() {
+                this.lock = true;
+            },
+            startConnection() {
+                return new Promise((resolve, reject) => {
+                    let socket = io("http://127.0.0.1:9100", {
+                        reconnection: false
+                    });
+                    setTimeout(() => {
+                        if (socket.connected) {
+                            this.socket = socket;
+                            // 登录通信服务器
+                            socket.emit("login", {
+                                groupId: this.file.hash,
+                                user: {
+                                    uid: this.user.id,
+                                    avatar: this.user.id,
+                                },
+                            });
+                            // 监听服务器掉线
+                            socket.on("disconnect", () => {
+                                console.log("服务器掉线")
+                                console.log(socket.id);
+                            });
+                            resolve();
+                        } else {
+                            reject(Error("连接通信服务器失败"));
+                        }
+                    }, 500);
+                })
+            },
             show() {
                 this.display = true;
             },
@@ -78,59 +114,73 @@
              * 初始化编辑器
              */
             initEditor() {
-                if (this.editor === null) {
-                    console.log("开始初始化编辑器");
-                    // 创建编辑器实例
-                    this.editor = new E('#toolbar-container', '#text-container');
-                    // this.editor.config.height = this.height;
-                    this.editor.config.menus = [
-                        'head',
-                        'bold',
-                        'fontSize',
-                        'fontName',
-                        'italic',
-                        'underline',
-                        'strikeThrough',
-                        'indent',
-                        'foreColor',
-                        'backColor',
-                        'link',
-                        'list',
-                        'todo',
-                        'justify',
-                        'quote',
-                        'emoticon',
-                        'image',
-                        'video',
-                        'table',
-                        'code',
-                    ]
-                    this.editor.config.showFullScreen = false;
-                    // 监听本地变更
-                    this.editor.config.onchange = this.handleChange;
-                    // this.editor.config.onchangeTimeout = 1000;
-                    this.editor.create();
-                    this.editor.txt.html(StringUtil.strToUtf16(this.getDocData()));
-                    console.log(`编辑器初始化成功，500ms后解锁内容编辑`);
-                    let updated = this.fillSeq();
-                    if (updated) {
-                        console.log(updated)
-                        this.submitOps();
-                    } else {
-                        this.syncStatus = true;
+                return new Promise((resolve, reject) => {
+                    try {
+                        if (this.editor === null) {
+                            console.log("开始初始化编辑器");
+                            // 创建编辑器实例
+                            this.editor = new E('#toolbar-container', '#text-container');
+                            // 设置工具栏
+                            this.editor.config.menus = [
+                                'head',
+                                'bold',
+                                'fontSize',
+                                'fontName',
+                                'italic',
+                                'underline',
+                                'strikeThrough',
+                                'indent',
+                                'foreColor',
+                                'backColor',
+                                'link',
+                                'list',
+                                'todo',
+                                'justify',
+                                'quote',
+                                'emoticon',
+                                'image',
+                                'video',
+                                'table',
+                                'code',
+                            ]
+                            // 关闭全屏模式
+                            this.editor.config.showFullScreen = false;
+                            // 监听本地变更
+                            this.editor.config.onchange = this.handleChange;
+                            // 渲染
+                            this.editor.create();
+                            // 设置内容
+                            this.editor.txt.html(StringUtil.strToUtf16(this.getDocData()));
+                            console.log(`编辑器初始化成功，500ms后解锁内容编辑`);
+                            // 处理DOM序号
+                            let updated = this.fillSeq();
+                            // 如果处理了序号，则提交变更
+                            if (updated) {
+                                this.submitOps();
+                            } else {
+                                this.syncStatus = true;
+                            }
+                            setTimeout(() => {
+                                // 启动输入法监听
+                                this.compositionListener();
+                                // 启动状态监听器
+                                this.startStatusListener();
+                                this.lock = false;
+                                this.startConnection()
+                                    .then(() => {
+                                        resolve();
+                                    })
+                                    .catch((e) => {
+                                        reject(e);
+                                    })
+                            }, 500);
+                        } else {
+                            console.warn("编辑器已初始化");
+                        }
+                    } catch (e) {
+                        reject(e);
                     }
-                    setTimeout(() => {
-                        this.compositionListener();
-                        // 启动状态监听器
-                        this.startStatusListener();
-                        this.lock = false;
-                    }, 500);
-                    // setInterval(() => {
-                    //     this.onChange();
-                    // }, 1000);
-                } else {
-                    console.warn("编辑器已初始化");
-                }
+                })
             },
             /**
              * 从文档的数据中更新编辑器
@@ -314,6 +364,10 @@
              * 提交变更
              **/
             submitOps() {
+                if (this.lock) {
+                    console.warn("编辑器已锁定");
+                    return;
+                }
                 console.log("开始处理变更");
 
                 // 当前数据
