@@ -47,15 +47,12 @@
             checkVisibility() {
                 // 全屏状态
                 const pattern = new RegExp("/doc/.*|/auth");
-                console.log(this.$route.path)
                 if (pattern.test(this.$route.path)) {
-                    console.log("全屏");
                     this.visibility.navbar = false;
                     this.visibility.header = false;
                     this.size.md = 0;
                     this.size.lg = 0;
                 } else {
-                    console.log("非全屏");
                     this.visibility.navbar = true;
                     this.visibility.header = true;
                     this.size.md = 6;

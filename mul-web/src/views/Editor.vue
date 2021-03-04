@@ -1,6 +1,6 @@
 <template>
     <div id="editor" :style="{ height: height }">
-        <Doc ref="editor" :doc="doc" :uid="uid" :file="file" :ready="ready"></Doc>
+        <Doc ref="editor" :doc="doc" :user="user" :file="file" :ready="ready"></Doc>
     </div>
 </template>
 
@@ -21,6 +21,7 @@
         data() {
             return {
                 height: `${document.documentElement.clientHeight}px`,
+                user: {},
                 uid: null,
                 type: "",
                 hash: "",
@@ -28,6 +29,7 @@
                 ready: false,
                 doc: null,
                 socket: null,
+                loading: null,
             }
         },
         methods: {
@@ -35,18 +37,16 @@
              * 连接服务器
              */
             connectServer() {
-                if (!StringUtil.isEmpty(this.uid)) {
-                    // 连接服务
-                    this.socket = new ReconnectingWebSocket(
-                        `ws://192.168.31.123:9003`
-                    );
-                    // 连接 sharedb
-                    const connection = new sharedb.Connection(this.socket);
-                    // 获取文档
-                    this.doc = connection.get(this.type, this.hash);
-                    // 订阅文档
-                    this.subscribeDoc();
-                }
+                // 连接服务
+                this.socket = new ReconnectingWebSocket(
+                    `ws://192.168.31.123:9003`
+                );
+                // 连接 sharedb
+                const connection = new sharedb.Connection(this.socket);
+                // 获取文档
+                this.doc = connection.get(this.type, this.hash);
+                // 订阅文档
+                this.subscribeDoc();
             },
             subscribeDoc() {
                 if (this.doc !== null) {
@@ -62,9 +62,13 @@
                             // 如果未初始化，则初始化编辑器
                             if (!this.ready) {
                                 this.ready = true;
-                                setTimeout(()=>{
+                                setTimeout(() => {
                                     this.$refs.editor.initEditor();
                                 }, 500)
+                                setTimeout(() => {
+                                    this.loading.close();
+                                    this.$refs.editor.show();
+                                }, 1000)
                                 this.doc.on("op", (op, source) => {
                                     if (!source) {
                                         console.log(`接收到操作\t op:${JSON.stringify(op)}\t source:${source}`);
@@ -81,11 +85,16 @@
             }
         },
         created() {
+            this.loading = this.$loading({
+                lock: true,
+                background: 'rgba(239,239,239,0.7)'
+            });
             AuthApi.profile()
                 .then(r => {
                     let res = r.data;
                     if (res.status === 200) {
-                        this.uid = res.data.id;
+                        this.user = res.data;
+                        // this.uid = res.data.id;
                         const pattern = new RegExp("/([a-z]+)/(.{32})")
                         let exec = pattern.exec(this.$route.path);
                         let type = exec[1];
@@ -97,11 +106,8 @@
                                 .then(r => {
                                     let res = r.data;
                                     if (res.status === 200) {
-                                        let file = res.data;
-                                        // if (file.uid === this.uid) {
-                                            this.file = file;
-                                            this.connectServer();
-                                        // }
+                                        this.file = res.data;
+                                        this.connectServer();
                                     }
                                 })
                         }

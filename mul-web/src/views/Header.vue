@@ -12,9 +12,8 @@
             <!-- 【Header > 基础功能区域】开始 -->
             <el-col class="common" :md="8" :lg="14">
                 <!-- 【基础功能区域 > 个人信息】开始 -->
-                <el-avatar class="item" :size="36" shape="square" :src="this.$store.state.user.avatar"
-                           @error="errorAvatarHandler">
-                    {{this.$store.state.user.username}}
+                <el-avatar class="item" :size="36" shape="square" @error="errorAvatarHandler">
+                    {{user.id}}
                 </el-avatar>
                 <!-- 【基础功能区域 > 个人信息】结束 -->
                 <!-- 【基础功能区域 > 设置】开始 -->
@@ -37,10 +36,13 @@
 </template>
 
 <script>
+    import AuthApi from "@/api/auth";
+
     export default {
         name: "Header",
         data() {
             return {
+                user:{},
                 search: "",
             }
         },
@@ -49,6 +51,15 @@
                 return true;
             }
         },
+        created() {
+            AuthApi.profile()
+                .then(r => {
+                    let res = r.data;
+                    if (res.status === 200) {
+                        this.user = res.data;
+                    }
+                })
+        }
     }
 </script>
 

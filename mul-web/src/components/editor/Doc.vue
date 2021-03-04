@@ -1,5 +1,5 @@
 <template>
-    <div id="doc" v-if="ready">
+    <div id="doc" v-if="ready" v-show="display">
         <div id="top">
             <div class="header">
                 <div style="display: flex;flex-grow: 1;justify-content: flex-start;align-items: center;">
@@ -14,7 +14,8 @@
                         <i class="el-icon-caret-bottom"></i>
                     </div>
                     <el-divider direction="vertical"></el-divider>
-                    <i class="el-icon-circle-check" style="font-size: 14px;color: #cccccc;border-bottom: 1px solid #ccc;">&nbsp;自动保存</i>
+                    <i class="el-icon-circle-check"
+                       style="font-size: 14px;color: #cccccc;border-bottom: 1px solid #ccc;">&nbsp;自动保存</i>
                 </div>
                 <div style="display: flex;flex-grow: 1;justify-content: flex-end;align-items: center;">
                     <el-button type="default" size="mini">时间轴</el-button>
@@ -22,7 +23,7 @@
                     <el-button type="default" size="mini">下载</el-button>
                     <el-button type="default" size="mini">分享</el-button>
                     <el-divider direction="vertical"></el-divider>
-                    <el-avatar>{{this.$store.state.user.username}}</el-avatar>
+                    <el-avatar>{{this.user.id}}</el-avatar>
                 </div>
             </div>
             <div id="toolbar-container"></div>
@@ -66,9 +67,13 @@
                 forceSyncCount: 0,
                 // 同步状态监听器
                 statusListener: null,
+                display: false
             }
         },
         methods: {
+            show() {
+                this.display = true;
+            },
             /**
              * 初始化编辑器
              */
@@ -511,7 +516,7 @@
         },
         props: {
             doc: Object,
-            uid: String,
+            user: Object,
             file: Object,
             ready: Boolean,
         }

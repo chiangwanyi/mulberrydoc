@@ -187,7 +187,6 @@
                                     message: `${res.msg}`,
                                     type: "success",
                                 });
-                                this.$store.state.user = res.data;
                                 this.$router.push("/");
                             } else {
                                 this.$message({
