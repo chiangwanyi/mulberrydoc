@@ -1,20 +1,5 @@
-import { Connection, User, Socket } from "./connection";
-
-/**
- * 消息类型
- */
-enum MessageType {
-    /** 上线消息：发送给除自己外的所有组内用户 */
-    Online = "online",
-    /** 离线消息：发送给除自己外的所有组内用户 */
-    Offline = "offline",
-    /** 广播消息：发送给所有组内用户 */
-    Broadcast = "broadcast",
-    /** 普通消息：发送给指定（多个）用户*/
-    Msg = "msg",
-    /** 数据同步：将数据同步给所有组内用户 */
-    Sync = "sync",
-}
+import { Connection, User } from "./connection";
+import { MessageType } from "./model";
 
 /**
  * 消息
@@ -82,20 +67,23 @@ class Group {
      * @param connectionMap 连接池
      */
     online(self: string, connectionMap: Map<string, Connection>) {
-        this.members.forEach((socketId) => {
-            if (self !== socketId) {
-                let connection = connectionMap.get(socketId);
-                if (connection !== undefined) {
-                    connection.socket.emit(MessageType.Online, {
-                        from: "system",
-                        data: {
-                            text: `用户：${connection.user.uid}上线`,
-                        },
-                        timestamp: new Date().getTime(),
-                    });
+        const from = connectionMap.get(self);
+        if (from !== undefined) {
+            this.members.forEach((socketId) => {
+                if (self !== socketId) {
+                    let connection = connectionMap.get(socketId);
+                    if (connection !== undefined) {
+                        connection.socket.emit(MessageType.Online, {
+                            from: "system",
+                            data: {
+                                text: `用户 ${from.user.uid} 上线`,
+                            },
+                            timestamp: new Date().getTime(),
+                        });
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     /**
@@ -104,20 +92,23 @@ class Group {
      * @param connectionMap 连接池
      */
     offline(self: string, connectionMap: Map<string, Connection>) {
-        this.members.forEach((socketId) => {
-            if (self !== socketId) {
-                let connection = connectionMap.get(socketId);
-                if (connection !== undefined) {
-                    connection.socket.emit(MessageType.Offline, {
-                        from: "system",
-                        data: {
-                            text: `用户：${connection.user.uid}下线`,
-                        },
-                        timestamp: new Date().getTime(),
-                    });
+        const from = connectionMap.get(self);
+        if (from !== undefined) {
+            this.members.forEach((socketId) => {
+                if (self !== socketId) {
+                    let connection = connectionMap.get(socketId);
+                    if (connection !== undefined) {
+                        connection.socket.emit(MessageType.Offline, {
+                            from: "system",
+                            data: {
+                                text: `用户 ${from.user.uid} 下线`,
+                            },
+                            timestamp: new Date().getTime(),
+                        });
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     /**
@@ -131,15 +122,14 @@ class Group {
         text: string,
         connectionMap: Map<string, Connection>
     ) {
-        let from = connectionMap.get(self);
+        const from = connectionMap.get(self);
         if (from !== undefined) {
-            let uid = from.user.uid;
             this.members.forEach((socketId) => {
                 if (self !== socketId) {
                     let connection = connectionMap.get(socketId);
                     if (connection !== undefined) {
                         let msg = {
-                            from: uid,
+                            from: from.user.uid,
                             data: {
                                 text: text,
                             },
@@ -153,6 +143,11 @@ class Group {
         }
     }
 
+    /**
+     * 同步数据
+     * @param data 数据
+     * @param connectionMap 连接池
+     */
     sync(data: object, connectionMap: Map<string, Connection>) {
         this.members.forEach((socketId) => {
             let connection = connectionMap.get(socketId);
@@ -166,6 +161,10 @@ class Group {
         });
     }
 
+    /**
+     * 获取当前组的数据
+     * @param connectionMap 连接池
+     */
     data(connectionMap: Map<string, Connection>) {
         let members: User[] = [];
         this.members.forEach((socketId) => {

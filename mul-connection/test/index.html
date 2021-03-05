@@ -10,11 +10,14 @@
         <script src="./socket.io.js"></script>
         <script>
             const socket = io.connect("http://127.0.0.1:9100");
+            let uid = "2";
+            document.title = uid;
+            console.log(`用户 ${uid} 登录`);
 
             socket.emit("login", {
                 groupId: "aaa",
                 user: {
-                    uid: "1",
+                    uid: uid,
                     avatar: "http://img",
                 },
             });
@@ -23,25 +26,32 @@
             //     console.log(`收到消息：${JSON.stringify(data)}`);
             // });
 
-            socket.on('online', function (data) {
+            socket.on("online", function (data) {
                 console.log(`===== 收到[Online]消息 =====`);
                 console.log(data);
             });
 
-            socket.on('offline', function (data) {
+            socket.on("offline", function (data) {
                 console.log(`===== 收到[Offline]消息 =====`);
                 console.log(data);
             });
 
-            socket.on('broadcast', function (data) {
+            socket.on("broadcast", function (data) {
                 console.log(`===== 收到[Broadcast]消息 =====`);
                 console.log(data);
             });
 
-            socket.on('sync', function (data) {
+            socket.on("sync", function (data) {
                 console.log(`===== 收到[Sync]消息 =====`);
                 console.log(data);
             });
+
+            socket.on("error", function (data) {
+                console.log(`===== 收到[Error]消息 =====`);
+                console.error(data);
+            });
+
+            socket.emit("broadcast", `我是${uid}，我上线了`);
         </script>
     </body>
 </html>
