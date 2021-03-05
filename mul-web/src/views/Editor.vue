@@ -41,6 +41,11 @@
                 this.socket = new ReconnectingWebSocket(
                     `ws://192.168.31.123:9003`
                 );
+                this.socket.addEventListener("close", () => {
+                    console.error("文档数据库服务器连接丢失");
+                    this.socket.close();
+                    this.$refs.editor.destroy();
+                })
                 // 连接 sharedb
                 const connection = new sharedb.Connection(this.socket);
                 // 获取文档

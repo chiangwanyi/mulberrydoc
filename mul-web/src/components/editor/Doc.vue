@@ -53,8 +53,10 @@
                 },
                 height: `${document.documentElement.clientHeight}px`,
                 width: `${document.documentElement.clientWidth}px`,
-                // 监听编辑器内容变化锁
+
+                // 编辑器锁
                 lock: true,
+
                 updateFlag: false,
                 // 中文等字符输入锁
                 compositionLock: false,
@@ -66,18 +68,25 @@
                 syncStatus: false,
                 // 强制同步数据计数器
                 forceSyncCount: 0,
-                // 同步状态监听器
-                statusListener: null,
-                display: false,
-                listener: {
 
-                },
+                // 同步状态监听器
+                syncListener: null,
+
+                display: false,
                 socket: null,
             }
         },
         methods: {
             destroy() {
-                this.lock = true;
+                // 冻结编辑器
+                this.freeze = true;
+                // 清除监听器
+                clearInterval(this.syncListener);
+                this.$notify.error({
+                    title: '错误',
+                    message: '服务器连接中断',
+                    duration: 0
+                });
             },
             startConnection() {
                 return new Promise((resolve, reject) => {
@@ -97,11 +106,12 @@
                             });
                             // 监听服务器掉线
                             socket.on("disconnect", () => {
-                                console.log("服务器掉线")
-                                console.log(socket.id);
+                                console.error("通信服务器连接丢失");
+                                this.destroy();
                             });
                             resolve();
                         } else {
+                            this.destroy();
                             reject(Error("连接通信服务器失败"));
                         }
                     }, 500);
@@ -151,7 +161,8 @@
                             this.editor.create();
                             // 设置内容
                             this.editor.txt.html(StringUtil.strToUtf16(this.getDocData()));
-                            console.log(`编辑器初始化成功，500ms后解锁内容编辑`);
+                            document.querySelector("div.w-e-text-container").setAttribute("style", "");
+                            console.log(`编辑器初始化成功`);
                             // 处理DOM序号
                             let updated = this.fillSeq();
                             // 如果处理了序号，则提交变更
@@ -165,10 +176,10 @@
                                 this.compositionListener();
                                 // 启动状态监听器
                                 this.startStatusListener();
-                                this.lock = false;
                                 this.startConnection()
                                     .then(() => {
                                         resolve();
+                                        this.lock = false;
                                     })
                                     .catch((e) => {
                                         reject(e);
@@ -332,7 +343,7 @@
                 // 重新处理延迟时间
                 const delayHandleTime = 200;
                 // 检查内容是否锁定
-                if (this.lock) {
+                if (this.lock && !this.freeze) {
                     console.warn(`内容锁定中，${delayHandleTime}ms后重新处理变更`);
                     // 创建延时器重新处理内容变更
                     setTimeout(() => {
@@ -364,8 +375,8 @@
              * 提交变更
              **/
             submitOps() {
-                if (this.lock) {
-                    console.warn("编辑器已锁定");
+                if (this.freeze) {
+                    console.warn(`编辑器已冻结，提交失败`);
                     return;
                 }
                 console.log("开始处理变更");
@@ -466,7 +477,7 @@
                         let uid = seq[1];
                         let index = parseInt(seq[2]);
                         // 如果序号是当前用户的序号
-                        if (this.uid === uid) {
+                        if (this.user.id === uid) {
                             // 已经包含了该序号
                             if (indexList.includes(index)) {
                                 errorIndexList.push(i);
@@ -484,28 +495,28 @@
                 // 修改有问题的序号
                 errorIndexList.forEach(i => {
                     console.log(`修复序号有问题的DOM`);
-                    element.children.item(i).setAttribute("index", `${this.uid}-${nextIndex++}`);
+                    element.children.item(i).setAttribute("index", `${this.user.id}-${nextIndex++}`);
                 })
                 return errorIndexList.length !== 0;
-                // this.lock = false;
-                // console.log(Log.prefix(TimeUtils.fullTimeString(), mn) + `处理DOM序号完成`);
             },
             /**
              * 状态监听器
              */
             startStatusListener() {
                 // 检查状态延时时间
-                const checkDelay = 1000;
+                const checkDelay = 2000;
                 console.log(`状态监听器启动，每${checkDelay}ms检查一次同步状态`);
-                this.statusListener = setInterval(() => {
+                this.syncListener = setInterval(() => {
                     let docData = this.getDocData();
                     let containerData = this.getContainerData();
-                    // console.log(`文档数据：${docData}`);
-                    // console.log(`页面数据：${containerData}`);
                     if (docData !== containerData) {
                         this.syncStatus = false;
                         if (this.compositionLock) {
                             console.warn(`数据不同步，等待输入完毕`);
+                            return;
+                        }
+                        if (this.freeze) {
+                            console.warn("编辑器已冻结，等待处理");
                             return;
                         }
                         if (this.forceSyncCount < forceSyncLimit) {
@@ -514,8 +525,8 @@
                         } else {
                             console.error("数据不同步尝试次数达到上限，冻结编辑器，等待重新同步数据");
                             // this.syncData();
-                            clearInterval(this.statusListener);
-                            this.statusListener = null;
+                            clearInterval(this.syncListener);
+                            this.syncListener = null;
                         }
                     } else {
                         this.syncStatus = true;
@@ -532,7 +543,7 @@
                 });
                 container.addEventListener("compositionend", () => {
                     // this.compositionLock = false;
-                    if (this.statusListener === null) {
+                    if (this.syncListener === null) {
                         this.startStatusListener();
                     }
                     console.warn(`输入法输入完毕`);
@@ -583,7 +594,7 @@
         padding-top: 100px;
 
         #top {
-            z-index: 100000;
+            z-index: 1500;
             position: fixed;
             background-color: #ffffff;
 

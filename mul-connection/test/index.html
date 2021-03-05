@@ -19,13 +19,29 @@
                 },
             });
 
-            socket.on("msg", (data) => {
-                console.log(`收到消息：${JSON.stringify(data)}`);
+            // socket.on("msg", (data) => {
+            //     console.log(`收到消息：${JSON.stringify(data)}`);
+            // });
+
+            socket.on('online', function (data) {
+                console.log(`===== 收到[Online]消息 =====`);
+                console.log(data);
             });
 
-            // socket.on('broadcast', function (data) {
-            //     console.log(data);
-            // });
+            socket.on('offline', function (data) {
+                console.log(`===== 收到[Offline]消息 =====`);
+                console.log(data);
+            });
+
+            socket.on('broadcast', function (data) {
+                console.log(`===== 收到[Broadcast]消息 =====`);
+                console.log(data);
+            });
+
+            socket.on('sync', function (data) {
+                console.log(`===== 收到[Sync]消息 =====`);
+                console.log(data);
+            });
         </script>
     </body>
 </html>

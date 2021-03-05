@@ -7,7 +7,7 @@ const io = require("socket.io")(server, {
     },
 });
 
-import { Group, Message, MessageType } from "./src/group";
+import { Group } from "./src/group";
 import { Connection, Socket } from "./src/connection";
 import { LoginData } from "./src/model";
 
@@ -40,16 +40,9 @@ io.on("connection", (socket: Socket) => {
         let connection = new Connection(groupId, user, socket);
         connectionMap.set(socketId, connection);
         // 广播上线消息
-        group.broadcast(
-            socketId,
-            {
-                uid: connection.user.uid,
-                type: MessageType.Online,
-                text: `user:${connection.user.uid} 上线`,
-                timestamp: new Date().getTime(),
-            },
-            connectionMap
-        );
+        group.online(socketId, connectionMap);
+        // 同步数据
+        group.sync(group.data(connectionMap), connectionMap);
         console.log(`当前组数：${groupMap.size}`);
         console.log(`当前连接数：${connectionMap.size}`);
         console.log("=========");
@@ -63,16 +56,7 @@ io.on("connection", (socket: Socket) => {
             let group = groupMap.get(connection.groupId);
             if (group !== undefined) {
                 // 广播离线消息
-                group.broadcast(
-                    socketId,
-                    {
-                        uid: connection.user.uid,
-                        type: MessageType.Offline,
-                        text: `user:${connection.user.uid} 离线`,
-                        timestamp: new Date().getTime(),
-                    },
-                    connectionMap
-                );
+                group.offline(socketId, connectionMap);
                 // 移除成员
                 group.removeMember(socketId);
                 // 如果组成员为空
@@ -90,19 +74,19 @@ io.on("connection", (socket: Socket) => {
         console.log("=========");
     });
 
-    /** 用户广播信息 */
-    socket.on("broadcast", (data: Message) => {
-        let connection = connectionMap.get(socketId);
-        if (connection !== undefined) {
-            let group = groupMap.get(connection.groupId);
-            if (group !== undefined) {
-                // 广播信息
-                group.broadcast(socketId, data, connectionMap);
-            }
-        }
-    });
+    // /** 用户广播信息 */
+    // socket.on("broadcast", (data: Message) => {
+    //     let connection = connectionMap.get(socketId);
+    //     if (connection !== undefined) {
+    //         let group = groupMap.get(connection.groupId);
+    //         if (group !== undefined) {
+    //             // 广播信息
+    //             group.broadcast(socketId, data, connectionMap);
+    //         }
+    //     }
+    // });
 });
 
 server.listen(9100, () => {
-    console.log("Serve on http://localhost:9100\n");
+    console.log("Server run at: http://localhost:9100\n");
 });

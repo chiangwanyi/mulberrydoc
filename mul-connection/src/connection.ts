@@ -1,9 +1,11 @@
+import { Message } from "./group";
+
 /**
  * Socket 实例
  */
 type Socket = {
     on: (arg0: string, arg1: (data: any) => void) => void;
-    emit: (key: string, data: any) => void;
+    emit: (key: string, data: Message) => void;
     disconnect: (close: boolean) => void;
     id: string;
 };
