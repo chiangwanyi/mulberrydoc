@@ -1,6 +1,6 @@
 <template>
     <div id="editor" :style="{ height: height }">
-        <Doc ref="editor" :doc="doc" :user="user" :file="file" :ready="ready"></Doc>
+        <Doc ref="editor" :doc="doc" :user="user" :file="file" :ready="ready" @closeServe="closeServer"></Doc>
     </div>
 </template>
 
@@ -30,6 +30,7 @@
                 doc: null,
                 socket: null,
                 loading: null,
+                flag: false
             }
         },
         methods: {
@@ -43,6 +44,9 @@
                 );
                 this.socket.addEventListener("close", () => {
                     console.error("文档数据库服务器连接丢失");
+                    if (this.flag) {
+                        return;
+                    }
                     this.socket.close();
                     this.$refs.editor.destroy();
                 })
@@ -53,6 +57,13 @@
                 // 订阅文档
                 this.subscribeDoc();
             },
+            closeServer() {
+                this.flag = true
+                this.socket.close();
+            },
+            /**
+             * 订阅文件
+             */
             subscribeDoc() {
                 if (this.doc !== null) {
                     this.doc.subscribe((err) => {

@@ -7,15 +7,22 @@
                     <p class="file-name" contenteditable="true">{{file.name}}</p>
                     <el-divider direction="vertical"></el-divider>
                     <div style="display: flex;align-items: center;">
-                        <el-avatar size="small">1</el-avatar>
-                        <el-avatar size="small">2</el-avatar>
-                        <el-avatar size="small">3</el-avatar>
-                        <el-avatar size="small">4</el-avatar>
+                        <el-avatar size="small" v-for="user in members" :key="user.uid">{{user.avatar}}</el-avatar>
+<!--                        <el-avatar size="small">2</el-avatar>-->
+<!--                        <el-avatar size="small">3</el-avatar>-->
+<!--                        <el-avatar size="small">4</el-avatar>-->
                         <i class="el-icon-caret-bottom"></i>
                     </div>
                     <el-divider direction="vertical"></el-divider>
-                    <i class="el-icon-circle-check"
-                       style="font-size: 14px;color: #cccccc;border-bottom: 1px solid #ccc;">&nbsp;自动保存</i>
+                    <span v-show="!onchange && !freeze" style="font-size: 14px;color: #cccccc;"><i
+                            class="el-icon-circle-check"></i>&nbsp;<span
+                            style="border-bottom: 1px solid #ccc;">变更已自动保存</span></span>
+                    <span v-show="onchange && !freeze" style="font-size: 14px;color: #cccccc;"><i
+                            class="el-icon-loading"></i>&nbsp;<span
+                            style="border-bottom: 1px solid #ccc;">正在保存</span></span>
+                    <span v-show="freeze" style="font-size: 14px;color: rgb(204 9 9);"><i
+                            class="el-icon-circle-close"></i>&nbsp;<span
+                            style="border-bottom: 1px solid rgb(204 9 9);">离线</span></span>
                 </div>
                 <div style="display: flex;flex-grow: 1;justify-content: flex-end;align-items: center;">
                     <el-button type="default" size="mini">时间轴</el-button>
@@ -29,6 +36,7 @@
             <div id="toolbar-container"></div>
         </div>
         <div id="text-container" :style="{minHeight: height}"></div>
+        <CharBox></CharBox>
     </div>
 </template>
 
@@ -37,6 +45,8 @@
     import Ot from "@/util/ot"
     import E from "wangeditor";
     import {io} from "socket.io-client";
+
+    import CharBox from "@/components/CharBox";
 
     // 强制同步数据上限尝试次数
     const forceSyncLimit = 20;
@@ -71,22 +81,27 @@
 
                 // 同步状态监听器
                 syncListener: null,
-
+                // 是否展示编辑器
                 display: false,
+                // 与通信服务器的socket连接
                 socket: null,
+                // 是否处于修改中状态
+                onchange: false,
+                members: [],
             }
         },
         methods: {
-            destroy() {
+            destroy(text) {
                 // 冻结编辑器
                 this.freeze = true;
                 // 清除监听器
                 clearInterval(this.syncListener);
                 this.$notify.error({
                     title: '错误',
-                    message: '服务器连接中断',
+                    message: text,
                     duration: 0
                 });
+                this.$emit("closeServe")
             },
             startConnection() {
                 return new Promise((resolve, reject) => {
@@ -104,10 +119,35 @@
                                     avatar: this.user.id,
                                 },
                             });
+                            socket.on("online", (data) => {
+                                console.log(`===== 收到[Online]消息 =====`);
+                                console.log(data);
+                            });
+                            socket.on("offline", (data) => {
+                                console.log(`===== 收到[Offline]消息 =====`);
+                                console.log(data);
+                            });
+                            socket.on("broadcast", (data) => {
+                                console.log(`===== 收到[Broadcast]消息 =====`);
+                                console.log(data);
+                            });
+                            socket.on("sync", (data) => {
+                                console.log(`===== 收到[Sync]消息 =====`);
+                                this.members = data.data.members;
+                            });
+                            socket.on("error", (data) => {
+                                console.log(`===== 收到[Error]消息 =====`);
+                                console.error(data);
+                                this.$alert('同一文件只能存在一条连接', '错误', {
+                                    confirmButtonText: '确定',
+                                    callback: () => {
+                                    }
+                                });
+                            });
                             // 监听服务器掉线
                             socket.on("disconnect", () => {
                                 console.error("通信服务器连接丢失");
-                                this.destroy();
+                                this.destroy("服务器连接中断");
                             });
                             resolve();
                         } else {
@@ -128,63 +168,62 @@
                     try {
                         if (this.editor === null) {
                             console.log("开始初始化编辑器");
-                            // 创建编辑器实例
-                            this.editor = new E('#toolbar-container', '#text-container');
-                            // 设置工具栏
-                            this.editor.config.menus = [
-                                'head',
-                                'bold',
-                                'fontSize',
-                                'fontName',
-                                'italic',
-                                'underline',
-                                'strikeThrough',
-                                'indent',
-                                'foreColor',
-                                'backColor',
-                                'link',
-                                'list',
-                                'todo',
-                                'justify',
-                                'quote',
-                                'emoticon',
-                                'image',
-                                'video',
-                                'table',
-                                'code',
-                            ]
-                            // 关闭全屏模式
-                            this.editor.config.showFullScreen = false;
-                            // 监听本地变更
-                            this.editor.config.onchange = this.handleChange;
-                            // 渲染
-                            this.editor.create();
-                            // 设置内容
-                            this.editor.txt.html(StringUtil.strToUtf16(this.getDocData()));
-                            document.querySelector("div.w-e-text-container").setAttribute("style", "");
-                            console.log(`编辑器初始化成功`);
-                            // 处理DOM序号
-                            let updated = this.fillSeq();
-                            // 如果处理了序号，则提交变更
-                            if (updated) {
-                                this.submitOps();
-                            } else {
-                                this.syncStatus = true;
-                            }
-                            setTimeout(() => {
-                                // 启动输入法监听
-                                this.compositionListener();
-                                // 启动状态监听器
-                                this.startStatusListener();
-                                this.startConnection()
-                                    .then(() => {
-                                        resolve();
+                            this.startConnection()
+                                .then(() => {
+                                    // 创建编辑器实例
+                                    this.editor = new E('#toolbar-container', '#text-container');
+                                    // 设置工具栏
+                                    this.editor.config.menus = [
+                                        'head',
+                                        'bold',
+                                        'fontSize',
+                                        'fontName',
+                                        'italic',
+                                        'underline',
+                                        'strikeThrough',
+                                        'indent',
+                                        'foreColor',
+                                        'backColor',
+                                        'link',
+                                        'list',
+                                        'justify',
+                                        'quote',
+                                        'emoticon',
+                                        'image',
+                                        'video',
+                                        'table',
+                                        'code',
+                                    ]
+                                    // 关闭全屏模式
+                                    this.editor.config.showFullScreen = false;
+                                    // 监听本地变更
+                                    this.editor.config.onchange = this.handleChange;
+                                    // 渲染
+                                    this.editor.create();
+                                    // 设置内容
+                                    this.editor.txt.html(StringUtil.strToUtf16(this.getDocData()));
+                                    document.querySelector("div.w-e-text-container").setAttribute("style", "");
+                                    console.log(`编辑器初始化成功`);
+                                    // 处理DOM序号
+                                    let updated = this.fillSeq();
+                                    // 如果处理了序号，则提交变更
+                                    if (updated) {
+                                        this.submitOps();
+                                    } else {
+                                        this.syncStatus = true;
+                                    }
+                                    setTimeout(() => {
+                                        // 启动输入法监听
+                                        this.compositionListener();
+                                        // 启动状态监听器
+                                        this.startStatusListener();
                                         this.lock = false;
-                                    })
-                                    .catch((e) => {
-                                        reject(e);
-                                    })
-                            }, 500);
+                                        resolve();
+                                    }, 500);
+                                })
+                                .catch((e) => {
+                                    reject(e);
+                                })
                         } else {
                             console.warn("编辑器已初始化");
                         }
@@ -197,6 +236,9 @@
              * 从文档的数据中更新编辑器
              */
             syncData() {
+                if (this.freeze) {
+                    return;
+                }
                 console.log("开始同步数据");
                 // 锁定内容
                 this.lock = true;
@@ -366,10 +408,14 @@
                         return;
                     }
                 }
+                this.onchange = true;
                 this.fillSeq();
                 this.submitOps();
                 // 解锁，继续监听变更
                 this.lock = false;
+                setTimeout(() => {
+                    this.onchange = false;
+                }, 500)
             },
             /**
              * 提交变更
@@ -578,6 +624,9 @@
                 let element = document.getElementById(this.editor.textElemId);
                 return StringUtil.utf16ToStr(element.innerHTML).trim();
             },
+        },
+        components:{
+            CharBox:CharBox
         },
         props: {
             doc: Object,

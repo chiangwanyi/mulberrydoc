@@ -15,7 +15,7 @@ import { LoginData, MessageType } from "./src/model";
 let groupMap = new Map<string, Group>();
 /** socketId -> Connection */
 let connectionMap = new Map<string, Connection>();
-/** uid -> socketId */
+/** groupId:uid -> socketId */
 let userMap = new Map<string, string>();
 
 /**
@@ -37,7 +37,7 @@ function online(
     // 添加成员
     group.addMember(socketId);
     // 记录用户ID与SocketId映射
-    userMap.set(data.user.uid, socketId);
+    userMap.set(`${data.groupId}:${data.user.uid}`, socketId);
     // 更新组Map
     groupMap.set(data.groupId, group);
     // 保存连接
@@ -74,10 +74,6 @@ function offline(
                 // 广播离线消息
                 group.offline(socketId, connectionMap);
             }
-            if (sync) {
-                // 同步数据
-                group.sync(group.data(connectionMap), connectionMap);
-            }
             if (force) {
                 // 发送强制下线消息
                 connection.socket.emit(MessageType.Error, {
@@ -91,7 +87,11 @@ function offline(
             // 移除成员
             group.removeMember(socketId);
             // 移除 UserMap 中的映射
-            userMap.delete(connection.user.uid);
+            userMap.delete(`${group.groupId}:${connection.user.uid}`);
+            if (sync) {
+                // 同步数据
+                group.sync(group.data(connectionMap), connectionMap);
+            }
             // 如果组成员为空
             if (group.isEmpty()) {
                 groupMap.delete(connection.groupId);
@@ -117,8 +117,8 @@ io.on("connection", (socket: Socket) => {
         if (group === undefined) {
             group = new Group(data.groupId);
         }
-        // 检查用户是否已经登录
-        let check = userMap.get(data.user.uid);
+        // 检查用户是否已经登录了组
+        let check = userMap.get(`${data.groupId}:${data.user.uid}`);
         // 用户已登录，强制下线
         if (check !== undefined) {
             offline(check, false, false, true);
