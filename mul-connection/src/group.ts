@@ -136,7 +136,7 @@ class Group {
                             timestamp: new Date().getTime(),
                         };
                         connection.socket.emit(MessageType.Broadcast, msg);
-                        this.messages.unshift(msg);
+                        this.messages.push(msg);
                     }
                 }
             });

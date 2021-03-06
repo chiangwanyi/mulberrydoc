@@ -1,12 +1,9 @@
 <template>
-    <div id="chatbox" :style="{width:`${minWidth}px`, height:`${minHeight}px`}">
+    <div id="chatbox" :style="{width:`${minWidth}px`, height:`${minHeight}px`}" v-show="show">
         <div class="title">
             <h2>即时聊天</h2>
-            <div>
-                <a class="min" href="javascript:" title="最小化"></a>
-                <a class="max" href="javascript:" title="最大化"></a>
-                <a class="revert" href="javascript:" title="还原"></a>
-                <a class="close" href="javascript:" title="关闭"></a>
+            <div style="cursor: pointer;">
+                <a class="close" @click="show = false;" title="关闭"></a>
             </div>
         </div>
         <div class="resizeL"></div>
@@ -18,22 +15,18 @@
         <div class="resizeBR"></div>
         <div class="resizeLB"></div>
         <div class="content">
-            <div class="main">
-                <div class="msg" style="flex-direction: row;">
-                    <el-avatar size="small">1</el-avatar>
-                    <p>
-                        sdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf</p>
-                </div>
-                <div class="msg" style="flex-direction: row-reverse;">
-                    <el-avatar size="small">1</el-avatar>
-                    <p>
-                        asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf</p>
+            <div class="main" id="main">
+                <div class="msg" v-for="(item, index) in messages"
+                     :style="{flexDirection: item.user.uid === user.id ? 'row-reverse' : 'row'}" :key="index">
+                    <el-avatar size="small">{{item.user.avatar}}</el-avatar>
+                    <p>{{item.text}}</p>
                 </div>
             </div>
             <div style="background-color: #b1b1b1;display: block;height: 1px;width: 100%;margin: 4px 0;"></div>
             <div class="footer" style="display: flex;flex-direction: row;height: 8%;padding: 0 2px 5px 2px;">
-                <textarea style="flex-grow: 6;resize: none;border: none;outline: none"></textarea>
-                <el-button size="mini" style="flex-grow: 1">发送</el-button>
+                <textarea style="flex-grow: 6;font-size: 14px;resize: none;border: none;outline: none"
+                          v-model="text"></textarea>
+                <el-button size="mini" style="flex-grow: 1" @click="send">发送</el-button>
             </div>
         </div>
     </div>
@@ -62,51 +55,12 @@
             return {
                 minWidth: 400,
                 minHeight: 520,
-                activeTab: "group",
-                tables: [
-                    {
-                        title: '组',
-                        id: 'group',
-                        content: 'Tab 1 content'
-                    }
-                    // , {
-                    //     title: '周玲玲',
-                    //     id: '2',
-                    //     content: 'Tab 2 content'
-                    // }
-                ],
-                tabIndex: 2
+                show: false,
+                text: "",
+                messages: []
             }
         },
         methods: {
-            handleClick(tab, event) {
-                console.log(tab, event);
-            },
-            addTab(targetName) {
-                let newTabName = ++this.tabIndex + '';
-                this.tables.push({
-                    title: 'New Tab',
-                    id: newTabName,
-                    content: 'New Tab content'
-                });
-                this.activeTab = newTabName;
-            },
-            removeTab(targetName) {
-                let tabs = this.tables;
-                let activeName = this.activeTab;
-                if (activeName === targetName) {
-                    tabs.forEach((tab, index) => {
-                        if (tab.id === targetName) {
-                            let nextTab = tabs[index + 1] || tabs[index - 1];
-                            if (nextTab) {
-                                activeName = nextTab.id;
-                            }
-                        }
-                    });
-                }
-                this.activeTab = activeName;
-                this.tables = tabs.filter(tab => tab.id !== targetName);
-            },
             drag(oDrag, handle) {
                 let disX = 0;
                 let disY = 0;
@@ -146,56 +100,56 @@
 
                     return false
                 };
-                //最大化按钮
-                oMax.onclick = () => {
-                    oDrag.style.top = oDrag.style.left = 0;
-                    oDrag.style.width = document.documentElement.clientWidth - 2 + "px";
-                    oDrag.style.height = document.documentElement.clientHeight - 2 + "px";
-                    this.style.display = "none";
-                    oRevert.style.display = "block";
-                };
-                //还原按钮
-                oRevert.onclick = () => {
-                    oDrag.style.width = this.minWidth + "px";
-                    oDrag.style.height = this.minHeight + "px";
-                    oDrag.style.left = (document.documentElement.clientWidth - oDrag.offsetWidth) / 2 + "px";
-                    oDrag.style.top = (document.documentElement.clientHeight - oDrag.offsetHeight) / 2 + "px";
-                    this.style.display = "none";
-                    oMax.style.display = "block";
-                };
-                //最小化按钮
-                oMin.onclick = oClose.onclick = () => {
-                    oDrag.style.display = "none";
-                    let oA = document.createElement("a");
-                    oA.className = "open";
-                    oA.href = "javascript:;";
-                    oA.title = "还原";
-                    document.body.appendChild(oA);
-                    oA.onclick = () => {
-                        oDrag.style.display = "block";
-                        document.body.removeChild(this);
-                        oA.onclick = null;
-                    };
-                };
+                // //最大化按钮
+                // oMax.onclick = () => {
+                //     oDrag.style.top = oDrag.style.left = 0;
+                //     oDrag.style.width = document.documentElement.clientWidth - 2 + "px";
+                //     oDrag.style.height = document.documentElement.clientHeight - 2 + "px";
+                //     this.style.display = "none";
+                //     oRevert.style.display = "block";
+                // };
+                // //还原按钮
+                // oRevert.onclick = () => {
+                //     oDrag.style.width = this.minWidth + "px";
+                //     oDrag.style.height = this.minHeight + "px";
+                //     oDrag.style.left = (document.documentElement.clientWidth - oDrag.offsetWidth) / 2 + "px";
+                //     oDrag.style.top = (document.documentElement.clientHeight - oDrag.offsetHeight) / 2 + "px";
+                //     this.style.display = "none";
+                //     oMax.style.display = "block";
+                // };
+                // //最小化按钮
+                // oMin.onclick = oClose.onclick = () => {
+                //     oDrag.style.display = "none";
+                //     let oA = document.createElement("a");
+                //     oA.className = "open";
+                //     oA.href = "javascript:;";
+                //     oA.title = "还原";
+                //     document.body.appendChild(oA);
+                //     oA.onclick = () => {
+                //         oDrag.style.display = "block";
+                //         document.body.removeChild(this);
+                //         oA.onclick = null;
+                //     };
+                // };
                 //阻止冒泡
-                oMin.onmousedown = (event) => {
-                    oMin.onfocus = () => {
-                        oMin.blur()
-                    };
-                    (event || window.event).cancelBubble = true
-                };
-                oMax.onmousedown = (event) => {
-                    oMax.onfocus = () => {
-                        oMax.blur()
-                    };
-                    (event || window.event).cancelBubble = true
-                };
-                oClose.onmousedown = (event) => {
-                    oClose.onfocus = () => {
-                        oClose.blur()
-                    };
-                    (event || window.event).cancelBubble = true
-                };
+                // oMin.onmousedown = (event) => {
+                //     oMin.onfocus = () => {
+                //         oMin.blur()
+                //     };
+                //     (event || window.event).cancelBubble = true
+                // };
+                // oMax.onmousedown = (event) => {
+                //     oMax.onfocus = () => {
+                //         oMax.blur()
+                //     };
+                //     (event || window.event).cancelBubble = true
+                // };
+                // oClose.onmousedown = (event) => {
+                //     oClose.onfocus = () => {
+                //         oClose.blur()
+                //     };
+                //     (event || window.event).cancelBubble = true
+                // };
             },
             resize(oParent, handle, isLeft, isTop, lockX, lockY) {
                 handle.onmousedown = (event) => {
@@ -247,6 +201,39 @@
                     return false;
                 };
             },
+            switchDialog() {
+                this.show = !this.show;
+            },
+            receive(data){
+                this.messages.push({
+                    user: {
+                        uid: data.uid,
+                        avatar: data.uid
+                    },
+                    text: data.text
+                })
+                setTimeout(() => {
+                    let element = document.getElementById("main");
+                    element.scrollTop = element.scrollHeight - element.clientHeight;
+                }, 100)
+            },
+            send() {
+                if (this.text !== "") {
+                    this.messages.push({
+                        user: {
+                            uid: this.user.id,
+                            avatar: this.user.id
+                        },
+                        text: this.text
+                    })
+                    this.$emit("broadcast", this.text);
+                    this.text = "";
+                    setTimeout(() => {
+                        let element = document.getElementById("main");
+                        element.scrollTop = element.scrollHeight - element.clientHeight;
+                    }, 100)
+                }
+            }
         },
         mounted() {
             let oDrag = document.getElementById("chatbox");
@@ -271,22 +258,11 @@
             this.resize(oDrag, oR, false, false, false, true);
             this.resize(oDrag, oB, false, false, true, false);
 
-            oDrag.style.left =
-                (document.documentElement.clientWidth - oDrag.offsetWidth) /
-                2 +
-                "px";
-            oDrag.style.top =
-                (document.documentElement.clientHeight -
-                    oDrag.offsetHeight) /
-                2 +
-                "px";
-
-            // document.querySelector("#chatbox div.content")
-            //     .setAttribute("style", "height: 91%;");
-            // document.querySelector("#chatbox .el-tabs")
-            //     .setAttribute("style", "height: 99%");
-            // document.querySelector("#chatbox .el-tabs--border-card>.el-tabs__content")
-            // .setAttribute("style", "padding: 6px;")
+            oDrag.style.left = `${document.documentElement.clientWidth * 0.5}px`;
+            oDrag.style.top = `${document.documentElement.clientHeight * 0.1}px`;
+        },
+        props: {
+            user: Object
         }
     }
 </script>
@@ -300,7 +276,7 @@
         background: #ffffff;
         box-shadow: 5px 5px 13px #737373,
         -5px -5px 13px #ffffff;
-        z-index: 30000;
+        z-index: 1600;
     }
 
     #chatbox .title {
@@ -338,6 +314,7 @@
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
+        overflow-y: scroll;
     }
 
     #chatbox .content .main .msg {
@@ -351,7 +328,7 @@
 
     #chatbox .content .main .msg p {
         word-wrap: break-word;
-        width: 80%;
+        max-width: 80%;
         border: 1px solid #ccc;
         margin: 4px;
         border-radius: 4px;

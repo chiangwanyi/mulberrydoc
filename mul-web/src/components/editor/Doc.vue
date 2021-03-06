@@ -8,9 +8,6 @@
                     <el-divider direction="vertical"></el-divider>
                     <div style="display: flex;align-items: center;">
                         <el-avatar size="small" v-for="user in members" :key="user.uid">{{user.avatar}}</el-avatar>
-<!--                        <el-avatar size="small">2</el-avatar>-->
-<!--                        <el-avatar size="small">3</el-avatar>-->
-<!--                        <el-avatar size="small">4</el-avatar>-->
                         <i class="el-icon-caret-bottom"></i>
                     </div>
                     <el-divider direction="vertical"></el-divider>
@@ -25,7 +22,7 @@
                             style="border-bottom: 1px solid rgb(204 9 9);">离线</span></span>
                 </div>
                 <div style="display: flex;flex-grow: 1;justify-content: flex-end;align-items: center;">
-                    <el-button type="default" size="mini">时间轴</el-button>
+                    <el-button type="default" size="mini" @click="showTimeAxis = true;">时间轴</el-button>
                     <el-divider direction="vertical"></el-divider>
                     <el-button type="default" size="mini">下载</el-button>
                     <el-button type="default" size="mini">分享</el-button>
@@ -36,7 +33,17 @@
             <div id="toolbar-container"></div>
         </div>
         <div id="text-container" :style="{minHeight: height}"></div>
-        <CharBox></CharBox>
+        <img id="chat-icon" src="../../assets/chat.png" alt="" @click="switchDialog">
+        <CharBox ref="charbox" :user="user" @broadcast="broadcast"></CharBox>
+        <el-drawer
+                title="时间轴"
+                :visible.sync="showTimeAxis"
+                direction="btt"
+                size="100%">
+            <div>
+                <h1>asdf</h1>
+            </div>
+        </el-drawer>
     </div>
 </template>
 
@@ -55,6 +62,7 @@
         name: "Doc",
         data() {
             return {
+                showTimeAxis: false,
                 icon: {
                     folder: require("../../assets/folder.svg"),
                     folderFavorite: require("../../assets/folder-favorite.svg"),
@@ -87,10 +95,19 @@
                 socket: null,
                 // 是否处于修改中状态
                 onchange: false,
+                // 当前加入的成员
                 members: [],
+
+
             }
         },
         methods: {
+            broadcast(text) {
+                this.socket.emit("broadcast", text);
+            },
+            switchDialog() {
+                this.$refs.charbox.switchDialog();
+            },
             destroy(text) {
                 // 冻结编辑器
                 this.freeze = true;
@@ -130,9 +147,15 @@
                             socket.on("broadcast", (data) => {
                                 console.log(`===== 收到[Broadcast]消息 =====`);
                                 console.log(data);
+                                this.$refs.charbox.receive({
+                                    uid: data.from,
+                                    avatar: data.from,
+                                    text: data.data.text
+                                });
                             });
                             socket.on("sync", (data) => {
                                 console.log(`===== 收到[Sync]消息 =====`);
+                                console.log(data)
                                 this.members = data.data.members;
                             });
                             socket.on("error", (data) => {
@@ -202,7 +225,8 @@
                                     this.editor.create();
                                     // 设置内容
                                     this.editor.txt.html(StringUtil.strToUtf16(this.getDocData()));
-                                    document.querySelector("div.w-e-text-container").setAttribute("style", "");
+                                    document.querySelector(".w-e-text-container").setAttribute("style", "z-index: 500;");
+                                    document.querySelector(".w-e-toolbar").setAttribute("style", "z-index: 1001;justify-content: center;");
                                     console.log(`编辑器初始化成功`);
                                     // 处理DOM序号
                                     let updated = this.fillSeq();
@@ -319,29 +343,6 @@
                     })
                 }
 
-                // let index = 0;
-                // diff.forEach(op => {
-                //     if (op.r !== undefined) {
-                //         index += op.r;
-                //     } else if (op.i !== undefined) {
-                //         for (let i = 0; i < op.i.length; i++) {
-                //             let tmp = document.createElement("div");
-                //             let node = map.hashMap.get(op.i.charAt(i));
-                //             if (typeof (node) === "string") {
-                //                 tmp.innerHTML = node;
-                //                 let newChild = tmp.children.item(0);
-                //                 oldContainer.insertBefore(newChild, oldContainer.children.item(index));
-                //                 index++;
-                //             } else {
-                //                 throw Error("处理insert操作时遇到非字符串内容");
-                //             }
-                //         }
-                //     } else if (op.d !== undefined) {
-                //         for (let i = 0; i < op.d.length; i++) {
-                //             oldContainer.removeChild(oldContainer.children.item(index));
-                //         }
-                //     }
-                // })
                 console.log("同步数据完成");
                 // 解锁，检查变更
                 this.checkDataSync();
@@ -625,8 +626,8 @@
                 return StringUtil.utf16ToStr(element.innerHTML).trim();
             },
         },
-        components:{
-            CharBox:CharBox
+        components: {
+            CharBox: CharBox
         },
         props: {
             doc: Object,
@@ -702,6 +703,16 @@
             width: 50%;
             padding: 40px;
             margin: 0 auto;
+        }
+
+        #chat-icon {
+            z-index: 1000;
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            position: fixed;
+            right: 50px;
+            bottom: 50px;
         }
     }
 </style>
