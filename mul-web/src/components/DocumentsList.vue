@@ -52,7 +52,8 @@
                     folder: require("../assets/folder.svg"),
                     folderFavorite: require("../assets/folder-favorite.svg"),
                     doc: require("../assets/word.svg"),
-                    chart: require("../assets/xchart.svg")
+                    chart: require("../assets/xchart.svg"),
+                    markdown: require("../assets/ppt.svg")
                 }
             }
         },
@@ -69,6 +70,9 @@
                 }
                 if (type === "doc") {
                     return this.icon.doc
+                }
+                if (type === "md") {
+                    return this.icon.markdown
                 }
             }
         },

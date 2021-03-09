@@ -46,7 +46,7 @@
              */
             checkVisibility() {
                 // 全屏状态
-                const pattern = new RegExp("/doc/.*|/auth");
+                const pattern = new RegExp("/doc/.*|/auth|/md/*");
                 if (pattern.test(this.$route.path)) {
                     this.visibility.navbar = false;
                     this.visibility.header = false;

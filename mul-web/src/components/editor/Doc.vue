@@ -22,7 +22,7 @@
                             style="border-bottom: 1px solid rgb(204 9 9);">离线</span></span>
                 </div>
                 <div style="display: flex;flex-grow: 1;justify-content: flex-end;align-items: center;">
-                    <el-button type="default" size="mini" @click="showTimeAxis = true;">时间轴</el-button>
+                    <el-button type="default" size="mini">时间轴</el-button>
                     <el-divider direction="vertical"></el-divider>
                     <el-button type="default" size="mini">下载</el-button>
                     <el-button type="default" size="mini">分享</el-button>
@@ -35,25 +35,26 @@
         <div id="text-container" :style="{minHeight: height}"></div>
         <img id="chat-icon" src="../../assets/chat.png" alt="" @click="switchDialog">
         <CharBox ref="charbox" :user="user" @broadcast="broadcast"></CharBox>
-        <el-drawer
-                title="时间轴"
-                :visible.sync="showTimeAxis"
-                direction="btt"
-                size="100%">
-            <div>
-                <h1>asdf</h1>
-            </div>
-        </el-drawer>
+        <!--        <el-drawer-->
+        <!--                title="时间轴"-->
+        <!--                :visible.sync="showTimeAxis"-->
+        <!--                direction="btt"-->
+        <!--                size="100%">-->
+        <!--            <div style="padding: 10px;height: 100%">-->
+        <!--                <TimeAxis></TimeAxis>-->
+        <!--            </div>-->
+        <!--        </el-drawer>-->
     </div>
 </template>
 
 <script>
-    import {StringUtil} from "@/util/tools";
+    import {StringUtil, DomUtil} from "@/util/tools";
     import Ot from "@/util/ot"
     import E from "wangeditor";
     import {io} from "socket.io-client";
 
     import CharBox from "@/components/CharBox";
+    // import TimeAxis from "@/components/editor/TimeAxis";
 
     // 强制同步数据上限尝试次数
     const forceSyncLimit = 20;
@@ -199,8 +200,8 @@
                                     this.editor.config.menus = [
                                         'head',
                                         'bold',
-                                        'fontSize',
-                                        'fontName',
+                                        // 'fontSize',
+                                        // 'fontName',
                                         'italic',
                                         'underline',
                                         'strikeThrough',
@@ -227,6 +228,7 @@
                                     this.editor.txt.html(StringUtil.strToUtf16(this.getDocData()));
                                     document.querySelector(".w-e-text-container").setAttribute("style", "z-index: 500;");
                                     document.querySelector(".w-e-toolbar").setAttribute("style", "z-index: 1001;justify-content: center;");
+                                    // document.querySelector("header.el-drawer__header").setAttribute("style", "margin: 0;");
                                     console.log(`编辑器初始化成功`);
                                     // 处理DOM序号
                                     let updated = this.fillSeq();
@@ -444,20 +446,46 @@
                 }
 
                 let map = Ot.stringsMap(oldValue, newValue);
+                console.log(map)
                 // TODO 需要保存原始数据以便撤销
                 let diff = Ot.completeDiff(map.aliasB, map.aliasA);
+                console.log(diff);
+                let flag = false;
+                for (let i = 0; i < diff.length; i++) {
+                    let op = diff[i];
+                    this.lock = true;
+                    if (op.i !== undefined) {
+                        for (let k = 0; k < op.i.length; k++) {
+                            let value = map.map.get(op.i.charAt(k));
+                            if (value !== undefined) {
+                                let element = DomUtil.createDom(value);
+                                if (!element.getAttribute("index").startsWith(`${this.user.id}-`)) {
+                                    flag = true;
+                                    let domList = document.querySelectorAll(`*[index='${element.getAttribute("index")}']`);
+                                    for (let j = 1; j < domList.length; j++) {
+                                        domList[j].removeAttribute("index");
+                                    }
+                                }
+                            }
+                        }
+                        if (flag) {
+                            this.lock = false;
+                            return;
+                        }
+                    }
+                }
                 // 存在差异
                 if (diff.length !== 0) {
                     if (diff.length <= 3) {
                         let compressOps = Ot.compress(diff);
                         if (compressOps !== null) {
                             diff = compressOps;
-                            console.log(`压缩操作：${JSON.stringify(compressOps)}`);
+                            console.log(`压缩操作：${JSON.stringify(diff)}`);
                         } else {
-                            console.log("不压缩，直接提交");
+                            console.log(`不压缩，直接提交：${JSON.stringify(diff)}`);
                         }
                     } else {
-                        console.log("复杂操作，非更新式提交");
+                        console.log(`复杂操作，非更新式提交：：${JSON.stringify(diff)}`);
                     }
 
                     // 开始提交
@@ -627,7 +655,8 @@
             },
         },
         components: {
-            CharBox: CharBox
+            CharBox: CharBox,
+            // TimeAxis: TimeAxis,
         },
         props: {
             doc: Object,

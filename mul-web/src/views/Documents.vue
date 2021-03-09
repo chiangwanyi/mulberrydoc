@@ -94,6 +94,10 @@
                     window.open(this.$router.resolve({
                         path: `/doc/${item.hash}`,
                     }).href, '_blank');
+                }  else if (item.type === "md") {
+                    window.open(this.$router.resolve({
+                        path: `/md/${item.hash}`,
+                    }).href, '_blank');
                 }
             },
             updateCurrentFolder() {

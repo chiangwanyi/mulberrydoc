@@ -1,0 +1,200 @@
+原文地址：https://www.cnblogs.com/diligenceday/p/5985903.html 效果图：
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Document</title>
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+        />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+            }
+            html,
+            body,
+            .box {
+                height: 100%;
+            }
+            .box {
+                display: -webkit-flex;
+                display: flex;
+                flex-direction: column;
+                font-family: "microsoft yahei";
+                font-size: 18px;
+            }
+            .box .header {
+                height: 40px;
+                line-height: 40px;
+                text-align: center;
+                background: #3498db;
+                color: #fff;
+            }
+            .box .body {
+                display: block;
+                border-bottom: 1px solid #eee;
+                overflow: auto;
+                flex: 1;
+            }
+            .box .send-left {
+                align-self: flex-end;
+                margin-top: 10px;
+                position: relative;
+                height: 35px;
+                background: #f8c301;
+                border-radius: 5px; /* 圆角 */
+                line-height: 35px;
+                margin-left: 10px;
+                padding: 0 10px;
+                float: left;
+            }
+            .box .send-left .arrow {
+                position: absolute;
+                top: 5px;
+                left: -15px;
+                width: 0;
+                height: 0;
+                font-size: 0;
+                border: solid 8px;
+                border-color: #fff #f8c301 #fff #fff;
+            }
+            .box .send {
+                align-self: flex-end;
+                margin-top: 10px;
+                position: relative;
+                height: 35px;
+                background: #2ecc71;
+                border-radius: 5px; /* 圆角 */
+                line-height: 35px;
+                margin-right: 10px;
+                padding: 0 10px;
+                float: right;
+            }
+            .box .send .arrow {
+                position: absolute;
+                top: 5px;
+                right: -15px;
+                width: 0;
+                height: 0;
+                font-size: 0;
+                border: solid 8px;
+                border-color: #fff #fff #fff #2ecc71;
+            }
+            .box .clear {
+                clear: both;
+            }
+            .box .footer {
+                height: 40px;
+                line-height: 40px;
+                display: -webkit-flex;
+                display: flex;
+            }
+            .box .footer input {
+                flex: auto;
+                border: none;
+                border-right: 1px solid #eee;
+                font-size: 18px;
+                padding-left: 4px;
+            }
+            .box .footer button {
+                width: 50px;
+                font-size: 18px;
+            }
+        </style>
+    </head>
+    <body>
+        <!--
+    容器属性
+        flex-direction
+        flex-wrap
+        flex-flow
+        justify-content
+        align-items
+        align-content
+    项目属性：
+        order
+        flex-grow
+        flex-shrink
+        flex-basis
+        flex
+        align-self
+    -->
+        <div class="box">
+            <div class="header">消息</div>
+            <div class="body">
+                <div class="send-left">
+                    hehe我哟我去
+                    <div class="arrow"></div>
+                </div>
+                <div class="clear"></div>
+                <div class="send">
+                    hehe
+                    <div class="arrow"></div>
+                </div>
+                <div class="clear"></div>
+                <div class="send">
+                    hehe我哟我去
+                    <div class="arrow"></div>
+                </div>
+                <div class="clear"></div>
+                <div class="send">
+                    来啊， 哈哈
+                    <div class="arrow"></div>
+                </div>
+                <div class="clear"></div>
+                <div class="send">
+                    来啊， 哈哈
+                    <div class="arrow"></div>
+                </div>
+                <div class="clear"></div>
+                <div class="send">
+                    来啊， 哈哈
+                    <div class="arrow"></div>
+                </div>
+                <div class="clear"></div>
+                <div class="send">
+                    来啊， 哈哈
+                    <div class="arrow"></div>
+                </div>
+                <div class="clear"></div>
+                <div class="send">
+                    来啊， 哈哈
+                    <div class="arrow"></div>
+                </div>
+                <div class="clear"></div>
+                <div class="send">
+                    来啊， 哈哈
+                    <div class="arrow"></div>
+                </div>
+                <div class="clear"></div>
+                <div class="send">
+                    来啊， 哈哈
+                    <div class="arrow"></div>
+                </div>
+                <div class="clear"></div>
+                <div class="send">
+                    来啊， 哈哈
+                    <div class="arrow"></div>
+                </div>
+                <div class="clear"></div>
+                <div class="send">
+                    来啊， 哈哈
+                    <div class="arrow"></div>
+                </div>
+                <div class="clear"></div>
+                <div class="send">
+                    来啊， 哈哈
+                    <div class="arrow"></div>
+                </div>
+            </div>
+            <div class="footer">
+                <input type="text" />
+                <button>发送</button>
+            </div>
+        </div>
+    </body>
+    <script></script>
+</html>

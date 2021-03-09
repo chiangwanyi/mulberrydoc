@@ -5,6 +5,7 @@ import Home from "../views/Home.vue";
 import Authentication from "../views/Authentication.vue";
 import Documents from "../views/Documents.vue";
 import Editor from "../views/Editor.vue";
+import Markdown from "../views/editor/Markdown.vue";
 
 Vue.use(VueRouter);
 
@@ -33,6 +34,11 @@ const routes: Array<RouteConfig> = [
         path:"/doc*",
         name:"Editor",
         component: Editor
+    },
+    {
+        path:"/md*",
+        name:"Markdown",
+        component: Markdown
     }
 ];
 

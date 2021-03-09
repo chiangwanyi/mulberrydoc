@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const json1 = require("ot-json1");
+const richText = require('rich-text');
 const ShareDB = require("sharedb");
 const WebSocket = require("ws");
 const WebSocketJSONStream = require("@teamwork/websocket-json-stream");
@@ -14,8 +15,12 @@ const File = require("./api/file");
 
 // 创建 sharedb 实体
 const share = new ShareDB({ db });
+
 // 注册 json1 类型
 ShareDB.types.register(json1.type);
+// 注册 RichText 类型
+ShareDB.types.register(richText.type);
+
 // 创建本地 Sharedb 连接
 const connection = share.connect();
 

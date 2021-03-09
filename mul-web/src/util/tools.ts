@@ -80,11 +80,20 @@ class DomUtil {
     //
     // }
 
-    static tmpContainer(innerHtml: string): HTMLElement {
+    static createDom(innerHtml: string) {
         let tmp = document.createElement("div");
         tmp.innerHTML = innerHtml;
-        return tmp;
+        const dom = tmp.children.item(0);
+        if (dom !== null && dom !== undefined) {
+            return dom;
+        }
     }
 }
 
-export {StringUtil, TimeUtil, DomUtil};
+class MathUtil {
+    static randomInt(min: number, max: number) {
+        return Math.floor(Math.random() * (max - min + 1)) + min
+    }
+}
+
+export {StringUtil, TimeUtil, DomUtil, MathUtil};

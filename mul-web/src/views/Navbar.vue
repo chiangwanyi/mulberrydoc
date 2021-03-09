@@ -9,10 +9,10 @@
         <!-- 【Logo】结束 -->
         <!-- 【目录】开始 -->
         <el-menu class="category" :default-active="activeIndex" router>
-            <el-menu-item index="/home">
-                <i class="el-icon-house"></i>
-                <span>主页</span>
-            </el-menu-item>
+<!--            <el-menu-item index="/home">-->
+<!--                <i class="el-icon-house"></i>-->
+<!--                <span>主页</span>-->
+<!--            </el-menu-item>-->
             <el-menu-item index="/documents">
                 <i class="el-icon-star-off"></i>
                 <span>我的文档</span>

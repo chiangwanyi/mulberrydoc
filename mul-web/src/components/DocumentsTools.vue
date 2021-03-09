@@ -40,7 +40,7 @@
                                      alt="">
                                 <img v-else-if="item.value === 'chart'" class="create_icon" src="../assets/xchart.svg"
                                      alt="">
-                                <img v-else-if="item.value === 'markdown'" class="create_icon" src="../assets/ppt.svg"
+                                <img v-else-if="item.value === 'md'" class="create_icon" src="../assets/ppt.svg"
                                      alt="">
                                 <span class="create_label">{{ item.label }}</span>
                             </el-option>
@@ -103,18 +103,20 @@
                     },
                     {
                         label: '文件',
-                        options: [{
-                            value: 'doc',
-                            label: '文档'
-                        }
+                        options: [
+                            {
+                                value: 'doc',
+                                label: '文档'
+                            },
+                            {
+                                value: 'md',
+                                label: 'Markdown'
+                            }
                             // , {
                             //     value: 'chart',
                             //     label: '表格'
                             // }
-                            // , {
-                            //     value: 'markdown',
-                            //     label: 'Markdown'
-                            // }
+
                         ]
                     }],
                 searchInfo: "",
@@ -158,6 +160,28 @@
                                 }
                             })
                         } else if (this.createForm.type === "doc") {
+                            DocumentsApi.createFile({
+                                folderHash: this.currentFolderHash,
+                                name: this.createForm.name,
+                                type: this.createForm.type
+                            }).then(r => {
+                                let res = r.data
+                                if (res.status === 200) {
+                                    this.createFormVisible = false;
+                                    this.$emit("refresh");
+                                    this.$message({
+                                        message: res.msg,
+                                        type: 'success'
+                                    });
+                                    this.createForm = {
+                                        type: "",
+                                        name: ""
+                                    }
+                                } else {
+                                    this.$message.error(res.msg.message);
+                                }
+                            })
+                        } else if (this.createForm.type === "md") {
                             DocumentsApi.createFile({
                                 folderHash: this.currentFolderHash,
                                 name: this.createForm.name,

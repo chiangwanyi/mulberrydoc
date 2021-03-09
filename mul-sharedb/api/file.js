@@ -19,16 +19,25 @@ class File {
             switch (type) {
                 // 文档类型
                 case "doc": {
-                    doc.create({
-                        data: [
-                            {
-                                text: "<h1>标题</h1>",
-                            },
-                            {
-                                text: "<p><br></p>",
-                            },
-                        ],
-                    }, doc_type);
+                    doc.create(
+                        {
+                            data: [
+                                {
+                                    text: "<h1>标题</h1>",
+                                },
+                                {
+                                    text: "<p><br></p>",
+                                },
+                            ],
+                        },
+                        doc_type
+                    );
+                }
+                case "md": {
+                    doc.create(
+                        [{ insert: "Hi!", attributes: { author: 2 } }],
+                        "rich-text"
+                    );
                 }
             }
             callback(null);
