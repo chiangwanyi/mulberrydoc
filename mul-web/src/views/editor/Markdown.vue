@@ -2,26 +2,28 @@
     <div id="markdown" :style="{ height: height }" v-show="ready">
         <div v-if="ready" id="top">
             <div class="header">
-                <div style="display: flex;flex-grow: 1;justify-content: flex-start;align-items: center;">
-                    <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
+                <div style="justify-content: flex-start;">
+                    <i class="back el-icon-arrow-left"></i>
                     <p class="file-name" contenteditable="true">{{file.name}}</p>
                     <el-divider direction="vertical"></el-divider>
-                    <div style="display: flex;align-items: center;">
+                    <div class="members">
                         <el-avatar size="small" v-for="user in members" :key="user.uid">{{user.avatar}}</el-avatar>
                         <i class="el-icon-caret-bottom"></i>
                     </div>
                     <el-divider direction="vertical"></el-divider>
-                    <span v-show="!onchange && !freeze" style="font-size: 14px;color: #cccccc;"><i
-                            class="el-icon-circle-check"></i>&nbsp;<span
-                            style="border-bottom: 1px solid #ccc;">变更已自动保存</span></span>
-                    <span v-show="onchange && !freeze" style="font-size: 14px;color: #cccccc;"><i
-                            class="el-icon-loading"></i>&nbsp;<span
-                            style="border-bottom: 1px solid #ccc;">正在保存</span></span>
-                    <span v-show="freeze" style="font-size: 14px;color: rgb(204 9 9);"><i
-                            class="el-icon-circle-close"></i>&nbsp;<span
-                            style="border-bottom: 1px solid rgb(204 9 9);">离线</span></span>
+                    <div class="file-status">
+                        <span v-show="!onchange && !freeze" style="font-size: 14px;color: #cccccc;"><i
+                                class="el-icon-circle-check"></i>&nbsp;<span
+                                style="border-bottom: 1px solid #ccc;">变更已自动保存</span></span>
+                        <span v-show="onchange && !freeze" style="font-size: 14px;color: #cccccc;"><i
+                                class="el-icon-loading"></i>&nbsp;<span
+                                style="border-bottom: 1px solid #ccc;">正在保存</span></span>
+                        <span v-show="freeze" style="font-size: 14px;color: rgb(204,9,9);"><i
+                                class="el-icon-circle-close"></i>&nbsp;<span
+                                style="border-bottom: 1px solid rgb(204,9,9);">离线</span></span>
+                    </div>
                 </div>
-                <div style="display: flex;flex-grow: 1;justify-content: flex-end;align-items: center;">
+                <div style="justify-content: flex-end;">
                     <el-button type="default" size="mini">时间轴</el-button>
                     <el-divider direction="vertical"></el-divider>
                     <el-button type="default" size="mini">下载</el-button>
@@ -74,19 +76,19 @@
             author: null,
 
             // 当前用户段落的颜色
-            authorColor: "rgba(208,101,252,0.30)",
+            authorColor: "rgba(208,101,252,0.15)",
 
             // 其他用户段落的颜色
             colors: [
-                "rgba(247,180,82,0.30)",
-                "rgba(239,108,145,0.30)",
-                "rgba(142,110,213,0.30)",
-                "rgba(106,188,145,0.30)",
-                "rgba(90,197,195,0.30)",
-                "rgba(114,151,227,0.30)",
-                "rgba(155,200,110,0.30)",
-                "rgba(235,213,98,0.30)",
-                "rgba(212,153,185,0.30)"
+                "rgba(247,180,82,0.15)",
+                "rgba(239,108,145,0.15)",
+                "rgba(142,110,213,0.15)",
+                "rgba(106,188,145,0.15)",
+                "rgba(90,197,195,0.15)",
+                "rgba(114,151,227,0.15)",
+                "rgba(155,200,110,0.15)",
+                "rgba(235,213,98,0.15)",
+                "rgba(212,153,185,0.15)"
             ],
             handlers: {
                 // 当文档中出现了一个新的用户ID时，使用这个函数来获取用户的信息
@@ -141,20 +143,10 @@
         }
     };
 
-    let toolbarOptions = [
-        // [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '+1'}, {'indent': '-1'}],
-        // ['align', 'color', 'background'],
-        // ['blockquote', 'code-block', 'link', 'image']
-    ];
-
     let quillOptions = {
         modules: {
             toolbar: {
                 container: "#toolbar",
-                // handlers: {
-                //     'bold': () => {
-                //     }
-                // }
             },
             keyboard: {
                 bindings: {
@@ -188,32 +180,31 @@
                 file: null,
                 // Ready
                 ready: false,
-
                 // 编辑器实例
                 editor: null,
+
                 // Doc连接实例
                 doc: null,
                 // Connection连接实例
                 connection: null,
 
+                // 纯文本
                 content: "",
-
                 // 当前用户列表
                 members: [],
-
                 // 文件修改中
                 onchange: false,
-
                 // 文件冻结中
                 freeze: true,
             }
         },
         methods: {
-            // 渲染Markdown
+            // 渲染 Markdown
             render() {
                 this.content = this.editor.quill.getText();
             },
 
+            // 设置 Toolbar
             setToolbar() {
                 const button_list = [
                     {id: "h1", format: "# "},
@@ -236,25 +227,12 @@
                         this.editor.quill.insertText(selection.index, btn.format, {author: this.user.id}, "user");
                     })
                 })
-                // const h1 = document.querySelector("button#h1");
-                // const h2 = document.querySelector("button#h2");
-                // const h3 = document.querySelector("button#h3");
-                // const bold = document.querySelector("button#bold");
-                //
-                // h1.addEventListener('click', () => {
-                //     let selection = this.editor.quill.getSelection(true);
-                //     this.editor.quill.insertText(selection.index, "# ", { author: this.user.id }, "user");
-                // })
-                //
-                // h2.addEventListener('click', () => {
-                //     let selection = this.editor.quill.getSelection(true);
-                //     this.editor.quill.insertText(selection.index, "## ", { author: this.user.id }, "user");
-                // })
-                //
-                // h3.addEventListener('click', () => {
-                //     let selection = this.editor.quill.getSelection(true);
-                //     this.editor.quill.insertText(selection.index, "### ", { author: this.user.id }, "user");
-                // })
+            },
+
+            // 销毁编辑器
+            destroy() {
+                this.freeze = true;
+                this.editor.quill.enable(false);
             },
 
             // 监听文件变更
@@ -332,7 +310,6 @@
             startServer() {
                 return new Promise((resolve, reject) => {
                     try {
-                        // quillOptions.modules.container = "toolbar";
                         this.editor = new Editor("#container", editorOptions, quillOptions);
                         this.editor.on(EditorEvents.editorTextChanged, this.onEditorTextChanged);
                         // 连接文档数据库
@@ -426,6 +403,27 @@
                 flex-direction: row;
                 flex-wrap: nowrap;
                 align-items: center;
+
+                > div {
+                    display: flex;
+                    flex-grow: 1;
+                    align-items: center;
+                }
+
+                i.back {
+                    font-size: 20px;
+                }
+
+                p.file-name {
+                    outline: none;
+                    font-size: 20px;
+                    margin: 0 6px;
+                }
+
+                .members {
+                    display: flex;
+                    align-items: center;
+                }
             }
         }
 
