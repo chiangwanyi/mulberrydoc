@@ -13,6 +13,7 @@ module.exports = {
     },
     rules: {
         "prefer-const": "off",
+        "@typescript-eslint/camelcase": "off",
         "@typescript-eslint/no-this-alias": "off",
         "@typescript-eslint/no-var-requires": "off",
         "@typescript-eslint/no-use-before-define": "off",

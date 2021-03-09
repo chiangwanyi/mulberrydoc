@@ -1,5 +1,5 @@
 <template>
-    <div id="editor-md" :style="{ height: height }" v-show="ready">
+    <div id="markdown" :style="{ height: height }" v-show="ready">
         <div v-if="ready" id="top">
             <div class="header">
                 <div style="display: flex;flex-grow: 1;justify-content: flex-start;align-items: center;">
@@ -31,10 +31,28 @@
                 </div>
             </div>
         </div>
-        <div class="editor-container" id="container"></div>
+        <div id="toolbar">
+            <button id="h1">H1</button>
+            <button id="h2">H2</button>
+            <button id="h3">H3</button>
+            <button id="bold">B</button>
+            <button id="italy">I</button>
+            <button id="del">S</button>
+            <el-divider direction="vertical"></el-divider>
+            <button id="horizon_line">-</button>
+            <button id="quote">&quot;</button>
+            <button id="code_block">C1</button>
+            <button id="code">C2</button>
+            <el-divider direction="vertical"></el-divider>
+            <button id="table">T</button>
+            <button id="link">L</button>
+            <button id="image">P</button>
+        </div>
         <div id="md">
-            <div style="width: 50%;" id="left"></div>
-            <div style="width: 50%;" id="right">
+            <div id="left" :style="{ minHeight: height }">
+                <div class="editor-container" id="container"></div>
+            </div>
+            <div id="right" class="markdown">
                 <vue-markdown :source="content"></vue-markdown>
             </div>
         </div>
@@ -124,17 +142,27 @@
     };
 
     let toolbarOptions = [
-        ['bold', 'italic', 'underline', 'strike'],
-        [{'header': 1}, {'header': 2}, {'header': 3}],
-        [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '+1'}, {'indent': '-1'}],
-        ['align', 'color', 'background'],
-        ['blockquote', 'code-block', 'link', 'image']
+        // [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '+1'}, {'indent': '-1'}],
+        // ['align', 'color', 'background'],
+        // ['blockquote', 'code-block', 'link', 'image']
     ];
 
     let quillOptions = {
         modules: {
-            // container: '',
-            toolbar: toolbarOptions,
+            toolbar: {
+                container: "#toolbar",
+                // handlers: {
+                //     'bold': () => {
+                //     }
+                // }
+            },
+            keyboard: {
+                bindings: {
+                    'list autofill': {
+                        prefix: /^\s{0,}(1){1,1}(\.|-|\*|\[ ?\]|\[x\])$/
+                    }
+                }
+            },
             history: {
                 delay: 0,
                 maxStack: 20,
@@ -181,31 +209,58 @@
             }
         },
         methods: {
-            // 重新布局
-            rearrange() {
-                const container = document.querySelector("div#container");
-                const left = document.querySelector("div#left");
-                const toolbar = document.querySelector("div.ql-toolbar");
-                console.log(toolbar)
-                toolbar.setAttribute("style", "position: fixed;\n" +
-                    "    width: 100%;\n" +
-                    "    background-color: #fff;\n" +
-                    "    border: none;\n" +
-                    "    border-bottom: 1px solid #ccc;\n" +
-                    "    border-top: 1px solid #ccc;\n" +
-                    "    z-index: 500;")
-                // 渲染Markdown
+            // 渲染Markdown
+            render() {
                 this.content = this.editor.quill.getText();
-                if (left !== null) {
-                    // 移动container位置
-                    left.appendChild(container);
-                }
+            },
+
+            setToolbar() {
+                const button_list = [
+                    {id: "h1", format: "# "},
+                    {id: "h2", format: "## "},
+                    {id: "h3", format: "###"},
+                    {id: "bold", format: "****"},
+                    {id: "italy", format: "**"},
+                    {id: "del", format: "~~~~"},
+                    {id: "horizon_line", format: "---"},
+                    {id: "quote", format: "> "},
+                    {id: "code_block", format: "``"},
+                    {id: "code", format: "```\n\n```"},
+                    {id: "table", format: "|     |     |\n| --- | --- |\n|    |    |\n"},
+                    {id: "link", format: "[]()"},
+                    {id: "image", format: "<img src=\"\" alt=\"\" style=\"zoom:100%;\" />"},
+                ];
+                button_list.forEach(btn => {
+                    document.querySelector(`button#${btn.id}`).addEventListener("click", () => {
+                        let selection = this.editor.quill.getSelection(true);
+                        this.editor.quill.insertText(selection.index, btn.format, {author: this.user.id}, "user");
+                    })
+                })
+                // const h1 = document.querySelector("button#h1");
+                // const h2 = document.querySelector("button#h2");
+                // const h3 = document.querySelector("button#h3");
+                // const bold = document.querySelector("button#bold");
+                //
+                // h1.addEventListener('click', () => {
+                //     let selection = this.editor.quill.getSelection(true);
+                //     this.editor.quill.insertText(selection.index, "# ", { author: this.user.id }, "user");
+                // })
+                //
+                // h2.addEventListener('click', () => {
+                //     let selection = this.editor.quill.getSelection(true);
+                //     this.editor.quill.insertText(selection.index, "## ", { author: this.user.id }, "user");
+                // })
+                //
+                // h3.addEventListener('click', () => {
+                //     let selection = this.editor.quill.getSelection(true);
+                //     this.editor.quill.insertText(selection.index, "### ", { author: this.user.id }, "user");
+                // })
             },
 
             // 监听文件变更
             onEditorTextChanged() {
                 this.onchange = true;
-                this.content = this.editor.quill.getText();
+                this.render()
                 setTimeout(() => {
                     this.onchange = false;
                 }, 500)
@@ -328,7 +383,8 @@
                                             .then(() => {
                                                 this.startConnection()
                                                     .then(() => {
-                                                        this.rearrange();
+                                                        this.render();
+                                                        this.setToolbar();
                                                         this.freeze = false;
                                                         this.ready = true;
                                                         this.loading.close();
@@ -346,8 +402,10 @@
     }
 </script>
 
+<style src="../../assets/css/markdown.css"></style>
+
 <style lang="scss" scoped>
-    #editor-md {
+    #markdown {
         background-color: #f9fafb;
         padding-top: 50px;
 
@@ -371,14 +429,40 @@
             }
         }
 
+        #toolbar {
+            position: fixed;
+            width: 100%;
+            background-color: #fff;
+            border: none;
+            border-bottom: 1px solid #ccc;
+            border-top: 1px solid #ccc;
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         #md {
             display: flex;
             flex-direction: row;
             width: 100%;
             margin-top: 40px;
 
+            #left {
+                width: 50%;
+                background-color: #ffffff;
+            }
+
+            #right {
+                width: 50%;
+                background-color: #f6f6f6;
+                padding: 6px;
+            }
+
+
             #container {
                 flex-grow: 1;
+                font-size: 16px;
             }
 
             #show {
