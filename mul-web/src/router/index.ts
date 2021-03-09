@@ -4,7 +4,8 @@ import VueRouter, {RouteConfig} from "vue-router";
 import Home from "../views/Home.vue";
 import Authentication from "../views/Authentication.vue";
 import Documents from "../views/Documents.vue";
-import Editor from "../views/Editor.vue";
+
+import RichText from "../views/editor/RichText.vue";
 import Markdown from "../views/editor/Markdown.vue";
 
 Vue.use(VueRouter);
@@ -15,11 +16,11 @@ const routes: Array<RouteConfig> = [
         name: 'Home',
         redirect: '/documents',
     },
-    {
-        path: "/about",
-        name: "About",
-        component: () => import("../views/About.vue"),
-    },
+    // {
+    //     path: "/about",
+    //     name: "About",
+    //     component: () => import("../views/About.vue"),
+    // },
     {
         path: '/documents*',
         name: 'Documents',
@@ -31,15 +32,15 @@ const routes: Array<RouteConfig> = [
         component: Authentication,
     },
     {
-        path:"/doc*",
-        name:"Editor",
-        component: Editor
+        path: "/doc*",
+        name: "RichText",
+        component: RichText
     },
     {
-        path:"/md*",
-        name:"Markdown",
+        path: "/md*",
+        name: "Markdown",
         component: Markdown
-    }
+    },
 ];
 
 const router = new VueRouter({

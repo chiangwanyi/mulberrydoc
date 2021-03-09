@@ -111,6 +111,10 @@
                             {
                                 value: 'md',
                                 label: 'Markdown'
+                            },
+                            {
+                                value: 'rt',
+                                label: 'RichText'
                             }
                             // , {
                             //     value: 'chart',

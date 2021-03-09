@@ -196,15 +196,21 @@
                 onchange: false,
                 // 文件冻结中
                 freeze: true,
+
+                // 加载中
+                loading: null,
             }
         },
         methods: {
-            // 渲染 Markdown
+            /**
+             * 渲染 Markdown
+             */
             render() {
                 this.content = this.editor.quill.getText();
             },
-
-            // 设置 Toolbar
+            /**
+             * 设置 Toolbar
+             */
             setToolbar() {
                 const button_list = [
                     {id: "h1", format: "# "},
@@ -228,14 +234,16 @@
                     })
                 })
             },
-
-            // 销毁编辑器
+            /**
+             * 销毁编辑器
+             */
             destroy() {
                 this.freeze = true;
                 this.editor.quill.enable(false);
             },
-
-            // 监听文件变更
+            /**
+             * 监听文件变更
+             */
             onEditorTextChanged() {
                 this.onchange = true;
                 this.render()
@@ -243,8 +251,10 @@
                     this.onchange = false;
                 }, 500)
             },
-
-            // 连接通信服务器
+            /**
+             * 连接通信服务器
+             * @returns {Promise<unknown>}
+             */
             startConnection() {
                 return new Promise((resolve, reject) => {
                     let socket = io("http://127.0.0.1:9100", {
@@ -305,8 +315,10 @@
                     }, 500);
                 })
             },
-
-            // 连接文件服务器
+            /**
+             * 连接文件服务器
+             * @returns {Promise<unknown>}
+             */
             startServer() {
                 return new Promise((resolve, reject) => {
                     try {

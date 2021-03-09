@@ -98,8 +98,6 @@
                 onchange: false,
                 // 当前加入的成员
                 members: [],
-
-
             }
         },
         methods: {

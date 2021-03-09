@@ -1,174 +1,154 @@
 <template>
-    <div id="rich-text" :style="{ height: height }" v-show="ready">
-        <div v-if="ready" id="top">
-            <div class="header">
-                <div style="justify-content: flex-start;">
-                    <i class="back el-icon-arrow-left"></i>
-                    <p class="file-name" contenteditable="true">{{file.name}}</p>
-                    <el-divider direction="vertical"></el-divider>
-                    <div class="members">
-                        <el-avatar size="small" v-for="user in members" :key="user.uid">{{user.avatar}}</el-avatar>
-                        <i class="el-icon-caret-bottom"></i>
-                    </div>
-                    <el-divider direction="vertical"></el-divider>
-                    <div class="file-status">
-                        <span v-show="!onchange && !freeze" style="font-size: 14px;color: #cccccc;"><i
-                                class="el-icon-circle-check"></i>&nbsp;<span
-                                style="border-bottom: 1px solid #ccc;">变更已自动保存</span></span>
-                        <span v-show="onchange && !freeze" style="font-size: 14px;color: #cccccc;"><i
-                                class="el-icon-loading"></i>&nbsp;<span
-                                style="border-bottom: 1px solid #ccc;">正在保存</span></span>
-                        <span v-show="freeze" style="font-size: 14px;color: rgb(204,9,9);"><i
-                                class="el-icon-circle-close"></i>&nbsp;<span
-                                style="border-bottom: 1px solid rgb(204,9,9);">离线</span></span>
-                    </div>
-                </div>
-                <div style="justify-content: flex-end;">
-                    <el-button type="default" size="mini">时间轴</el-button>
-                    <el-divider direction="vertical"></el-divider>
-                    <el-button type="default" size="mini">下载</el-button>
-                    <el-button type="default" size="mini">分享</el-button>
-                    <el-divider direction="vertical"></el-divider>
-                    <el-avatar>{{this.user.id}}</el-avatar>
-                </div>
-            </div>
-        </div>
-        <div class="editor-container" id="container"></div>
+    <div id="rich-text" :style="{ height: height }">
+        <Doc ref="editor" :doc="doc" :user="user" :file="file" :ready="ready" @closeServe="closeServer"></Doc>
     </div>
 </template>
 
 <script>
-    import Editor from "miks-collaborative-editor";
-    import EditorEvents from "miks-collaborative-editor/editor-events";
-    import 'quill/dist/quill.snow.css'
-    import AuthApi from "@/api/auth";
     import {StringUtil} from "@/util/tools";
+    import ReconnectingWebSocket from "reconnecting-websocket";
+    import AuthApi from "@/api/auth";
     import DocumentsApi from "@/api/documents";
-    import {io} from "socket.io-client";
+    import Doc from "@/views/editor/Doc";
 
-    let editorOptions = {
-        authorship: {
-            author: null,
+    const sharedb = require("sharedb/lib/client");
+    const json1 = require("ot-json1");
 
-            // 当前用户段落的颜色
-            authorColor: "rgba(208,101,252,0.15)",
-
-            // 其他用户段落的颜色
-            colors: [
-                "rgba(247,180,82,0.15)",
-                "rgba(239,108,145,0.15)",
-                "rgba(142,110,213,0.15)",
-                "rgba(106,188,145,0.15)",
-                "rgba(90,197,195,0.15)",
-                "rgba(114,151,227,0.15)",
-                "rgba(155,200,110,0.15)",
-                "rgba(235,213,98,0.15)",
-                "rgba(212,153,185,0.15)"
-            ],
-            handlers: {
-                // 当文档中出现了一个新的用户ID时，使用这个函数来获取用户的信息
-                // 必须返回一个Promise
-                getAuthorInfoById: (authorId) => {
-                    console.log(`出现了新的用户：${authorId}`);
-                    return new Promise((resolve, reject) => {
-
-                        let author = {
-                            id: 4,
-                            name: 'Another author'
-                        };
-
-                        if (author) {
-                            resolve(author);
-                        } else {
-                            reject("user not found");
-                        }
-                    });
-                }
-            }
-        },
-        image: {
-            handlers: {
-                // 上传DataURI格式的图片到服务器，并返回一个图片URL
-                // 必须返回一个Promise
-                imageDataURIUpload: (dataURI) => {
-
-                    console.log(dataURI);
-
-                    return new Promise((resolve) => {
-                        resolve('https://yd.wemiks.com/banner-2d980584-yuanben.svg');
-                    });
-                },
-
-                // 上传一个图片外链到服务器，并返回一个内部的图片URL
-                // 必须返回一个Promise
-                imageSrcUpload: (src) => {
-
-                    console.log(src);
-
-                    return new Promise((resolve) => {
-                        resolve('https://yd.wemiks.com/banner-2d980584-yuanben.svg');
-                    });
-                },
-
-                // 图片上传错误的处理
-                imageUploadError: (err) => {
-                    console.log("image upload error: " + err);
-                }
-            }
-        }
-    };
-
-    let quillOptions = {
-        modules: {
-            toolbar: {
-                container: "#toolbar",
-            },
-            history: {
-                delay: 0,
-                maxStack: 20,
-                userOnly: true,
-            },
-        },
-        theme: 'snow'
-    };
+    sharedb.types.register(json1.type);
 
     export default {
         name: "RichText",
         data() {
             return {
-                // 编辑器高度
                 height: `${document.documentElement.clientHeight}px`,
-                // 用户信息
                 user: {},
-                // 文件类型
+                uid: null,
                 type: "",
-                // 文件Hash
                 hash: "",
-                // 文件信息
                 file: null,
-                // Ready
                 ready: false,
-                // 编辑器实例
-                editor: null,
-
-                // Doc连接实例
                 doc: null,
-                // Connection连接实例
-                connection: null,
-
-                // 纯文本
-                content: "",
-                // 当前用户列表
-                members: [],
-                // 文件修改中
-                onchange: false,
-                // 文件冻结中
-                freeze: true,
+                socket: null,
+                loading: null,
+                flag: false
             }
         },
+        methods: {
+            /**
+             * 连接服务器
+             */
+            connectServer() {
+                // 连接服务
+                this.socket = new ReconnectingWebSocket(
+                    `ws://192.168.31.123:9003`
+                );
+                this.socket.addEventListener("close", () => {
+                    console.error("文档数据库服务器连接丢失");
+                    if (this.flag) {
+                        return;
+                    }
+                    this.socket.close();
+                    this.$refs.editor.destroy();
+                })
+                // 连接 sharedb
+                const connection = new sharedb.Connection(this.socket);
+                // 获取文档
+                this.doc = connection.get(this.type, this.hash);
+                // 订阅文档
+                this.subscribeDoc();
+            },
+            closeServer() {
+                this.flag = true
+                this.socket.close();
+            },
+            /**
+             * 订阅文件
+             */
+            subscribeDoc() {
+                if (this.doc !== null) {
+                    this.doc.subscribe((err) => {
+                        if (err) {
+                            console.error("订阅文档失败，error:", err);
+                            this.doc.destroy();
+                            throw err;
+                        }
+                        // 订阅文档成功，读取数据成功
+                        if (this.doc.data !== undefined || this.doc.type !== undefined) {
+                            console.log("订阅文档成功");
+                            // 如果未初始化，则初始化编辑器
+                            if (!this.ready) {
+                                this.ready = true;
+                                setTimeout(() => {
+                                    this.$refs.editor.initEditor()
+                                        .then(() => {
+                                            this.loading.close();
+                                            this.$refs.editor.show();
+                                            this.doc.on("op", (op, source) => {
+                                                if (!source) {
+                                                    console.log(`接收到操作\t op:${JSON.stringify(op)}\t source:${source}`);
+                                                    this.$refs.editor.syncData();
+                                                }
+                                            });
+                                        })
+                                        .catch(e => {
+                                            console.error(e);
+                                            this.$alert('打开文件失败，请重试', '错误', {
+                                                confirmButtonText: '重新加载',
+                                                callback: action => {
+                                                    if (action === "confirm") {
+                                                        window.location.reload();
+                                                    }
+                                                    this.loading.close();
+                                                }
+                                            });
+                                        });
+                                }, 500)
+                            }
+                        } else {
+                            console.error("读取文档数据失败");
+                            this.doc.destroy();
+                        }
+                    });
+                }
+            }
+        },
+        created() {
+            this.loading = this.$loading({
+                lock: true,
+                background: 'rgba(239,239,239,0.7)'
+            });
+            AuthApi.profile()
+                .then(r => {
+                    let res = r.data;
+                    if (res.status === 200) {
+                        this.user = res.data;
+                        const pattern = new RegExp("/([a-z]+)/(.{32})")
+                        let exec = pattern.exec(this.$route.path);
+                        let type = exec[1];
+                        let hash = exec[2];
+                        if (!StringUtil.isEmpty(type) && !StringUtil.isEmpty(hash)) {
+                            this.type = type;
+                            this.hash = hash;
+                            DocumentsApi.queryFile(hash)
+                                .then(r => {
+                                    let res = r.data;
+                                    if (res.status === 200) {
+                                        this.file = res.data;
+                                        this.connectServer();
+                                    }
+                                })
+                        }
+                    }
+                })
+        },
+        components: {
+            Doc: Doc
+        }
     }
 </script>
 
-<style lang="scss" scoped>
-
+<style scoped>
+    #rich-text {
+        height: 100%;
+    }
 </style>
