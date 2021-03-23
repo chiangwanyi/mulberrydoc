@@ -5,20 +5,21 @@
                 <el-button type="primary" size="small" icon="el-icon-upload">上传</el-button>
                 <el-button size="small" icon="el-icon-plus" @click="createFormVisible = true">新建
                 </el-button>
-                <el-button-group class="btn-group" v-show="selectedItemHash !== null && selectedItemHash.length > 0">
-                    <el-button size="small" icon="el-icon-share">分享</el-button>
-                    <el-button size="small" icon="el-icon-download">下载</el-button>
+                <el-button-group class="btn-group" v-show="selectedItem !== null && selectedItem.length > 0">
                     <el-button size="small" icon="el-icon-minus" @click="removeItem">移除</el-button>
-                    <el-button size="small">重命名</el-button>
-                    <el-button size="small">移动到</el-button>
-                    <el-button size="small">复制到</el-button>
+                    <el-button size="small" v-show="selectedItem.length === 1" @click="renameItem">重命名</el-button>
+                    <el-button size="small" v-show="selectedItem.length > 0" icon="el-icon-right" @click="moveTo">移动到
+                    </el-button>
+                    <el-button size="small" v-show="selectedItem.length === 1 && selectedItem[0].type !== 'folder'"
+                               @click="showFileAttr">属性
+                    </el-button>
                 </el-button-group>
             </el-col>
-            <el-col :lg="8" :xl="8">
-                <el-input placeholder="在当前文件夹中查询" size="small" v-model="searchInfo" class="input-with-select">
-                    <el-button slot="append" icon="el-icon-search"></el-button>
-                </el-input>
-            </el-col>
+            <!--            <el-col :lg="8" :xl="8">-->
+            <!--                <el-input placeholder="在当前文件夹中查询" size="small" v-model="searchInfo" class="input-with-select">-->
+            <!--                    <el-button slot="append" icon="el-icon-search"></el-button>-->
+            <!--                </el-input>-->
+            <!--            </el-col>-->
         </el-row>
         <el-dialog title="新建" :visible.sync="createFormVisible" width="30%">
             <el-form :model="createForm" ref="createForm" :rules="createRules" status-icon label-position="right"
@@ -56,6 +57,35 @@
                 <el-button type="primary" @click="createItem" :loading="onCreate">确定</el-button>
             </div>
         </el-dialog>
+        <el-dialog title="移动到" :visible.sync="moveToVisible" width="30%">
+            <el-tree :props="props" lazy :load="loadSubFolder" :highlight-current="true"
+                     @node-click="handleFolderMove"></el-tree>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="moveToVisible = false">取消</el-button>
+                <el-button type="primary" @click="moveItem" :loading="onCreate">确定</el-button>
+            </div>
+        </el-dialog>
+        <el-dialog title="修改文件属性" :visible.sync="fileAttributeVisible" width="30%">
+            <el-form :model="fileAttrForm">
+                <el-form-item label="读写状态">
+                    <el-radio-group v-model="fileAttrForm.rwStatus">
+                        <el-radio label="0">只读</el-radio>
+                        <el-radio label="1">读写</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="所属状态">
+                    <el-radio-group v-model="fileAttrForm.ownership">
+                        <el-radio label="0">私有</el-radio>
+                        <el-radio label="1">公开</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button size="small" @click="fileAttributeVisible = false">取消</el-button>
+                <el-button size="small" type="primary" @click="updateFileAttr" :loading="onFileAttr">确定
+                </el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
@@ -89,10 +119,17 @@
             }
             return {
                 onCreate: false,
+                onFileAttr: false,
+                moveToVisible: false,
                 createFormVisible: false,
+                fileAttributeVisible: false,
                 createForm: {
                     type: "",
                     name: ""
+                },
+                fileAttrForm: {
+                    rwStatus: "1",
+                    ownership: "1",
                 },
                 options: [
                     {
@@ -111,16 +148,7 @@
                             {
                                 value: 'md',
                                 label: 'Markdown'
-                            },
-                            {
-                                value: 'rt',
-                                label: 'RichText'
                             }
-                            // , {
-                            //     value: 'chart',
-                            //     label: '表格'
-                            // }
-
                         ]
                     }],
                 searchInfo: "",
@@ -131,10 +159,83 @@
                     name: [
                         {validator: validateName, trigger: 'blur'}
                     ],
-                }
+                },
+                props: {
+                    children: 'subfolder',
+                    label: 'name'
+                },
+
+                treeFolder: null,
+                treeResolve: null,
+
+                selectedMoveToFolderHash: null,
             }
         },
         methods: {
+            moveItem() {
+                let folders = [];
+                let files = [];
+                this.selectedItem.forEach(el => {
+                    if (el.type === "folder") {
+                        folders.push(el.hash);
+                    } else {
+                        files.push(el.hash);
+                    }
+                })
+                DocumentsApi.moveItemsTo(this.selectedMoveToFolderHash, folders, files)
+                    .then(r => {
+                        if (r.data.status === 200) {
+                            this.moveToVisible = false;
+                            this.$emit("refresh");
+                            this.$message({
+                                type: 'success',
+                                message: '移动成功！'
+                            });
+                        }
+                    })
+            },
+            moveTo() {
+                this.moveToVisible = true;
+                if (this.treeFolder !== null) {
+                    this.treeFolder.childNodes = [];
+                    this.loadSubFolder(this.treeFolder, this.treeResolve);
+                }
+            },
+            handleFolderMove(data) {
+                this.selectedMoveToFolderHash = data.hash;
+            },
+            loadSubFolder(folder, resolve) {
+                let selectedFolders = this.selectedItem.map(item => {
+                    if (item.type === "folder") {
+                        return item.hash
+                    }
+                }).filter(hash => hash !== undefined);
+                if (folder.level === 0) {
+                    this.treeFolder = folder;
+                    this.treeResolve = resolve;
+                    return resolve([{name: '根目录', hash: '$root'}]);
+                } else {
+                    let hash = folder.data.hash;
+                    DocumentsApi.querySubfolder(hash)
+                        .then(r => {
+                            let res = r.data;
+                            if (res.status === 200) {
+                                let subfolder = res.data;
+                                let result = subfolder.map(folder => {
+                                    if (!selectedFolders.includes(folder.hash)) {
+                                        return {
+                                            name: folder.name,
+                                            hash: folder.hash,
+                                        }
+                                    }
+                                }).filter(item => item !== undefined);
+                                setTimeout(() => {
+                                    resolve(result)
+                                }, 100);
+                            }
+                        })
+                }
+            },
             /**
              * 创建 Item
              */
@@ -218,21 +319,117 @@
              * 移除 Item
              */
             removeItem() {
-                this.$confirm('确认将所选文件移入回收站？', '提示', {
+                this.$confirm('确认将所选移入回收站？', '提示', {
                     confirmButtonText: '确定',
                     cancelButtonText: '取消',
                     type: 'warning'
                 }).then(() => {
-                    this.$message({
-                        type: 'success',
-                        message: '移除成功!'
-                    });
+                    let folders = [];
+                    let files = [];
+                    this.selectedItem.forEach(el => {
+                        if (el.type === "folder") {
+                            folders.push(el.hash);
+                        } else {
+                            files.push(el.hash);
+                        }
+                    })
+                    DocumentsApi.removeItems(folders, files)
+                        .then(r => {
+                            let res = r.data;
+                            console.log(res)
+                            if (res.status === 200) {
+                                this.$emit("refresh");
+                                this.$message({
+                                    type: 'success',
+                                    message: '移除成功!'
+                                });
+                            }
+                        })
                 }).catch((e) => {
                     console.error(e)
                 });
+            },
+            renameItem() {
+                let folderHash = null;
+                let fileHash = null;
+                this.selectedItem.forEach(el => {
+                    if (el.type === "folder") {
+                        folderHash = el.hash;
+                    } else {
+                        fileHash = el.hash;
+                    }
+                })
+                if (folderHash !== null) {
+                    this.data.forEach(f => {
+                        if (f.hash === folderHash) {
+                            this.$prompt('请输入名称', '重命名', {
+                                confirmButtonText: '确定',
+                                cancelButtonText: '取消',
+                                inputErrorMessage: '名称已存在',
+                                inputValue: f.name,
+                            }).then(({value}) => {
+                                f.name = value;
+                                DocumentsApi.updateFolder(f)
+                                    .then(r => {
+                                        let res = r.data;
+                                        if (res.status === 200) {
+                                            this.$message({
+                                                type: 'success',
+                                                message: "重命名文件夹成功"
+                                            });
+                                            this.$emit("refresh");
+                                        }
+                                    })
+                            })
+                        }
+                    });
+                } else {
+                    this.data.forEach(f => {
+                        if (f.hash === fileHash) {
+                            this.$prompt('请输入名称', '重命名', {
+                                confirmButtonText: '确定',
+                                cancelButtonText: '取消',
+                                inputErrorMessage: '名称已存在',
+                                inputValue: f.name,
+                            }).then(({value}) => {
+                                DocumentsApi.updateFileName(fileHash, value)
+                                    .then(r => {
+                                        let res = r.data;
+                                        console.log(res)
+                                        if (res.status === 200) {
+                                            this.$message({
+                                                type: 'success',
+                                                message: "重命名文件成功"
+                                            });
+                                            this.$emit("refresh");
+                                        }
+                                    })
+                            })
+                        }
+                    });
+                }
+            },
+            updateFileAttr() {
+                DocumentsApi.updateFileAttr(this.selectedItem[0].hash, parseInt(this.fileAttrForm.rwStatus), parseInt(this.fileAttrForm.ownership))
+                    .then(r => {
+                        let res = r.data;
+                        if (res.status === 200) {
+                            this.fileAttributeVisible = false;
+                            this.$message({
+                                type: 'success',
+                                message: "修改成功"
+                            });
+                            this.$emit("refresh");
+                        }
+                    })
+            },
+            showFileAttr() {
+                this.fileAttrForm.rwStatus = `${this.selectedItem[0].rwStatus}`;
+                this.fileAttrForm.ownership = `${this.selectedItem[0].ownership}`;
+                this.fileAttributeVisible = true;
             }
         },
-        props: ["currentFolder", "currentFolderHash", "data", "selectedItemHash"]
+        props: ["currentFolder", "currentFolderHash", "data", "selectedItem"]
     }
 </script>
 

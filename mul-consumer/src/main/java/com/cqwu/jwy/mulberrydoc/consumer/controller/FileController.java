@@ -70,4 +70,26 @@ public class FileController
         HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "queryFile", obj);
         return ResponseUtil.response(res, instance);
     }
+
+    @RequireLogin
+    @PostMapping("/file/attr")
+    public Object updateFileAttr(@RequestBody Map<String, Object> obj, HttpServletRequest request)
+    {
+        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
+        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
+        obj.put("uid", userId);
+        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "updateFileAttr", obj);
+        return ResponseUtil.response(res, instance);
+    }
+
+    @RequireLogin
+    @PostMapping("/file/name")
+    public Object updateFileName(@RequestBody Map<String, Object> obj, HttpServletRequest request)
+    {
+        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
+        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
+        obj.put("uid", userId);
+        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "updateFileName", obj);
+        return ResponseUtil.response(res, instance);
+    }
 }

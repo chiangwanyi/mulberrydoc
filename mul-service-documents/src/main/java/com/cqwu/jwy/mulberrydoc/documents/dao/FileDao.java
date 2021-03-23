@@ -4,7 +4,9 @@ import com.cqwu.jwy.mulberrydoc.documents.pojo.File;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -48,7 +50,7 @@ public interface FileDao
      * @param uid 用户ID
      * @return 文件列表
      */
-    @Select("select" + SELECT_SQL + "from" + TABLE_NAME + "where uid = #{uid}")
+    @Select("select" + SELECT_SQL + "from" + TABLE_NAME + "where uid = #{uid} and deleted_at is null")
     List<File> queryAllFiles(String uid);
 
     /**
@@ -57,7 +59,7 @@ public interface FileDao
      * @param hash 文件Hash
      * @return 文件
      */
-    @Select("select" + SELECT_SQL + "from" + TABLE_NAME + "where hash = #{hash}")
+    @Select("select" + SELECT_SQL + "from" + TABLE_NAME + "where hash = #{hash} and deleted_at is null")
     File queryFile(String hash);
 
     /**
@@ -67,6 +69,38 @@ public interface FileDao
      * @param folderHash 文件夹Hash
      * @return 文件列表
      */
-    @Select("select" + SELECT_SQL + "from" + TABLE_NAME + "where uid = #{arg0} and folder_hash = #{arg1}")
+    @Select("select" + SELECT_SQL + "from" + TABLE_NAME + "where uid = #{arg0} and folder_hash = #{arg1} and deleted_at is null")
     List<File> queryFiles(String uid, String folderHash);
+
+    @Update("update" + TABLE_NAME + "set deleted_at = #{arg2} where uid = #{arg0} and hash = #{arg1} and deleted_at is null")
+    void removeFile(String uid, String hash, Date date);
+
+    @Select("select" + SELECT_SQL + "from" + TABLE_NAME + "where uid = #{uid} and deleted_at is not null")
+    List<File> queryDeletedFiles(String uid);
+
+    /**
+     * 修改文件属性
+     *
+     * @param uid       所属用户ID
+     * @param hash      文件Hash
+     * @param rwStatus  文件读写状态
+     * @param ownership 文件所属状态
+     * @param date      文件修改日期
+     */
+    @Update("update" + TABLE_NAME + "set rw_status = ${arg2}, ownership = ${arg3}, updated_at = #{arg4} where uid = #{arg0} and hash = #{arg1} and deleted_at is null")
+    void updateFileAttr(String uid, String hash, Integer rwStatus, Integer ownership, Date date);
+
+    /**
+     * 修改文件名称
+     *
+     * @param uid  所属用户ID
+     * @param hash 文件Hash
+     * @param name 文件名称
+     * @param date 修改时间
+     */
+    @Update("update" + TABLE_NAME + "set name = '${arg2}', updated_at = #{arg3} where uid = #{arg0} and hash = #{arg1} and deleted_at is null")
+    void updateFileName(String uid, String hash, String name, Date date);
+
+    @Update("update" + TABLE_NAME + "set folder_hash = '${arg2}', name = '${arg3}', updated_at = #{arg4} where uid = #{arg0} and hash = #{arg1} and deleted_at is null")
+    void moveFile(String uid, String hash, String toFolderHash, String newName, Date date);
 }

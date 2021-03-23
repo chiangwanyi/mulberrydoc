@@ -24,7 +24,7 @@
                     </div>
                 </div>
                 <div style="justify-content: flex-end;">
-                    <el-button type="default" size="mini">时间轴</el-button>
+                    <el-button type="default" size="mini" @click="timeAxisVisible">时间轴</el-button>
                     <el-divider direction="vertical"></el-divider>
                     <el-button type="default" size="mini">下载</el-button>
                     <el-button type="default" size="mini">分享</el-button>
@@ -50,25 +50,52 @@
             <button id="link">L</button>
             <button id="image">P</button>
         </div>
-        <div id="md">
-            <div id="left" :style="{ minHeight: height }">
+        <div class="md">
+            <div class="left" :style="{ minHeight: height }">
                 <div class="editor-container" id="container"></div>
             </div>
-            <div id="right" class="markdown">
+            <div class="right markdown">
                 <vue-markdown :source="content"></vue-markdown>
             </div>
+        </div>
+        <img id="chat-icon" src="../../assets/chat.png" alt="" @click="switchDialog">
+        <CharBox ref="charbox" :user="user" @broadcast="broadcast"></CharBox>
+        <div style="z-index: 3000">
+            <el-drawer
+                    title="时间轴"
+                    :visible.sync="showTimeAxis"
+                    direction="btt"
+                    size="100%">
+                <div id="time-axis">
+                    <el-slider
+                            v-model="currentVersion"
+                            :max="maxVersion"
+                            :min="1"
+                            show-input>
+                    </el-slider>
+                    <div class="md" style="overflow-y: scroll;" :style="{ height: height }">
+                        <div class="left">
+                            <div class="editor-container" id="snapshot"></div>
+                        </div>
+                        <div class="right markdown">
+                            <vue-markdown :source="timeAxisContent"></vue-markdown>
+                        </div>
+                    </div>
+                </div>
+            </el-drawer>
         </div>
     </div>
 </template>
 
 <script>
-    import Editor from "miks-collaborative-editor";
+    import {Editor, Quill} from "miks-collaborative-editor";
     import EditorEvents from "miks-collaborative-editor/editor-events";
     import 'quill/dist/quill.snow.css'
     import AuthApi from "@/api/auth";
     import {StringUtil} from "@/util/tools";
     import DocumentsApi from "@/api/documents";
     import {io} from "socket.io-client";
+    import CharBox from "@/components/CharBox";
     import VueMarkdown from "vue-markdown"
 
     let editorOptions = {
@@ -180,16 +207,18 @@
                 file: null,
                 // Ready
                 ready: false,
+
                 // 编辑器实例
                 editor: null,
-
-                // Doc连接实例
-                doc: null,
-                // Connection连接实例
+                // 文档服务器连接实例
+                socket: null,
+                // 通信服务器连接实例
                 connection: null,
-
-                // 纯文本
+                // 文档实例
+                doc: null,
+                // 文档纯文本
                 content: "",
+
                 // 当前用户列表
                 members: [],
                 // 文件修改中
@@ -199,9 +228,56 @@
 
                 // 加载中
                 loading: null,
+
+                // 显示时间轴
+                showTimeAxis: false,
+                // 时间轴编辑器（只读）
+                timeAxisEditor: null,
+                // 当前 version
+                currentVersion: 1,
+                // 最新 version
+                maxVersion: 0,
+                // 时间轴文档
+                timeAxisDoc: null,
+                // 时间轴文档纯文本
+                timeAxisContent: "",
             }
         },
         methods: {
+            getSnapshot(version) {
+                this.timeAxisEditor.fetchSnapshot(this.type, this.hash, version, (error, snapshot) => {
+                    this.timeAxisDoc.setContents(snapshot.data, "api");
+                    this.timeAxisContent = this.timeAxisDoc.getText();
+                })
+            },
+            timeAxisVisible() {
+                this.showTimeAxis = !this.showTimeAxis;
+                this.currentVersion = 1;
+                // 更新最新版本数
+                this.maxVersion = this.doc.version;
+                // 初始化数据
+                this.timeAxisEditor.fetchSnapshot(this.type, this.hash, 1, (error, snapshot) => {
+                    if (this.timeAxisDoc === null) {
+                        this.timeAxisDoc = new Quill('#snapshot', {
+                            theme: 'snow'
+                        })
+                    }
+                    this.timeAxisDoc.setContents(snapshot.data, "api");
+                    this.timeAxisContent = this.timeAxisDoc.getText();
+                })
+            },
+            /**
+             * 广播消息
+             */
+            broadcast(text) {
+                this.connection.emit("broadcast", text);
+            },
+            /**
+             * 打开对话框
+             */
+            switchDialog() {
+                this.$refs.charbox.switchDialog();
+            },
             /**
              * 渲染 Markdown
              */
@@ -281,11 +357,11 @@
                             socket.on("broadcast", (data) => {
                                 console.log(`===== 收到[Broadcast]消息 =====`);
                                 console.log(data);
-                                // this.$refs.charbox.receive({
-                                //     uid: data.from,
-                                //     avatar: data.from,
-                                //     text: data.data.text
-                                // });
+                                this.$refs.charbox.receive({
+                                    uid: data.from,
+                                    avatar: data.from,
+                                    text: data.data.text
+                                });
                             });
                             socket.on("sync", (data) => {
                                 console.log(`===== 收到[Sync]消息 =====`);
@@ -326,10 +402,12 @@
                         this.editor.on(EditorEvents.editorTextChanged, this.onEditorTextChanged);
                         // 连接文档数据库
                         this.editor.syncThroughWebsocket("ws://192.168.31.123:9003", this.type, this.hash);
-                        this.doc = this.editor.synchronizer.socket;
-                        this.doc.addEventListener("close", () => {
+                        this.socket = this.editor.synchronizer.socket;
+                        this.doc = this.editor.synchronizer.doc;
+                        this.timeAxisEditor = this.editor.synchronizer.connection;
+                        this.socket.addEventListener("close", () => {
                             console.error("文档数据库服务器连接丢失");
-                            this.doc.close();
+                            this.socket.close();
                         })
                         setTimeout(() => {
                             resolve();
@@ -385,8 +463,15 @@
                     }
                 })
         },
+        watch: {
+            currentVersion(val) {
+                this.getSnapshot(val)
+                // console.log(val)
+            }
+        },
         components: {
-            VueMarkdown
+            VueMarkdown,
+            CharBox,
         }
     }
 </script>
@@ -452,21 +537,22 @@
             justify-content: center;
         }
 
-        #md {
+        .md {
             display: flex;
             flex-direction: row;
             width: 100%;
             margin-top: 40px;
 
-            #left {
+            .left {
                 width: 50%;
                 background-color: #ffffff;
             }
 
-            #right {
+            .right {
                 width: 50%;
-                background-color: #f6f6f6;
+                background-color: #ffffff;
                 padding: 6px;
+                border-top: 1px solid #ccc;
             }
 
 
@@ -478,6 +564,20 @@
             #show {
                 flex-grow: 1;
             }
+        }
+
+        #chat-icon {
+            z-index: 1000;
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            position: fixed;
+            right: 50px;
+            bottom: 50px;
+        }
+
+        #time-axis {
+            padding: 10px;
         }
     }
 </style>

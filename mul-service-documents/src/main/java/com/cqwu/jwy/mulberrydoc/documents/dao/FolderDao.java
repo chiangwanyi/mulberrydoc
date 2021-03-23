@@ -19,6 +19,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,6 +41,8 @@ public class FolderDao
 
     @Autowired
     private DocumentsDao documentsDao;
+    @Autowired
+    private FileDao fileDao;
     @Autowired
     private MongoTemplate mongo;
 
@@ -179,8 +182,14 @@ public class FolderDao
             criteria.and("folderList.hash").is(f.getHash());
             Query query = new Query(criteria);
             Update update = new Update();
-            update.set("folderList.$.deletedAt", DateUtil.nowDatetime());
+            Date date = DateUtil.nowDatetime();
+            update.set("folderList.$.deletedAt", date);
             UpdateResult result = mongo.updateMulti(query, update, Documents.class);
+            List<String> fileList = f.getFileList();
+            for (String fileHash : fileList)
+            {
+                fileDao.removeFile(uid, fileHash, date);
+            }
             long modifiedCount = result.getModifiedCount();
             if (modifiedCount == 0L)
             {
@@ -402,5 +411,65 @@ public class FolderDao
         }
         List<Folder> folders = querySubfolder(uid, parentHash);
         return folders.stream().anyMatch(folder -> Objects.equals(name, folder.getName()));
+    }
+
+    public List<Folder> queryDeletedFolders(String uid) throws WebException
+    {
+        Documents documents = documentsDao.queryDocumentsByUserId(uid);
+        if (Objects.nonNull(documents))
+        {
+            // 所有文件夹
+            return documents.getFolderList().stream()
+                    .filter(folder -> Objects.nonNull(folder.getDeletedAt()))
+                    .collect(Collectors.toList());
+        }
+        throw new WebException(DocumentsError.DOCUMENTS_NON_EXISTENT);
+    }
+
+    public void recoveryFolder(String uid, List<String> folders) throws WebException
+    {
+        Documents documents = documentsDao.queryDocumentsByUserId(uid);
+        List<Folder> list = new ArrayList<>();
+        if (Objects.nonNull(documents))
+        {
+            documents.getFolderList().forEach(folder -> {
+                String hash = folder.getHash();
+                if (folders.contains(hash))
+                {
+                    list.add(folder);
+                }
+            });
+        }
+        for (Folder f : list)
+        {
+            Criteria criteria = new Criteria();
+            criteria.and(PARAM_UID).is(uid);
+            criteria.and("folderList.hash").is(f.getHash());
+            Query query = new Query(criteria);
+            Update update = new Update();
+            Date date = DateUtil.nowDatetime();
+            update.set("folderList.$.deletedAt", null);
+            UpdateResult result = mongo.updateMulti(query, update, Documents.class);
+            List<String> fileList = f.getFileList();
+            for (String fileHash : fileList)
+            {
+                fileDao.removeFile(uid, fileHash, date);
+            }
+        }
+        throw new WebException(DocumentsError.DOCUMENTS_NON_EXISTENT);
+    }
+
+    public void moveFolder(String uid, Folder folder, String newParent)
+    {
+        Date date = DateUtil.nowDatetime();
+        Criteria criteria = new Criteria();
+        criteria.and(PARAM_UID).is(uid);
+        criteria.and("folderList.hash").is(folder.getHash());
+        Query query = new Query(criteria);
+        Update update = new Update();
+        update.set("folderList.$.parentHash", newParent);
+        update.set("folderList.$.name", folder.getName());
+        update.set("folderList.$.updatedAt", date);
+        mongo.updateMulti(query, update, Documents.class);
     }
 }

@@ -33,8 +33,6 @@ public class File
      * 文件所属状态
      * 0：private   私有
      * 1：public    公开
-     * 2：friend    好友共享
-     * 3：group:xxx 小组共享
      */
     private Integer ownership;
     /** 创建时间 */

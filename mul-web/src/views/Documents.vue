@@ -3,7 +3,7 @@
         <DocumentsTools :current-folder-hash="currentFolderHash"
                         :current-folder="currentFolder"
                         :data="data"
-                        :selected-item-hash="selectedItemHash"
+                        :selected-item="selectedItem"
                         @refresh="updateCurrentFolder"></DocumentsTools>
         <DocumentsPath :current-folder-hash="currentFolderHash"
                        :ready="ready"></DocumentsPath>
@@ -48,7 +48,7 @@
                 // 当前文件夹Hash
                 currentFolderHash: "",
                 // 被选中的 item 标识
-                selectedItemHash: [],
+                selectedItem: [],
             }
         },
         methods: {
@@ -85,7 +85,7 @@
              * @param  items
              */
             handleSelectItem(items) {
-                console.log(items)
+                this.selectedItem = items;
             },
             handleClickItem(item) {
                 if (item.type === "folder") {
@@ -131,6 +131,8 @@
                                                     hash: el.hash,
                                                     name: el.name,
                                                     type: el.type,
+                                                    rwStatus: el.rwStatus,
+                                                    ownership: el.ownership,
                                                     favorite: el.favorite,
                                                     createdAt: el.createdAt,
                                                     updatedAt: el.updatedAt,

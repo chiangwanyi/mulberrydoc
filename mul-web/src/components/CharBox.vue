@@ -3,7 +3,7 @@
         <div class="title">
             <h2>即时聊天</h2>
             <div style="cursor: pointer;">
-                <a class="close" @click="show = false;" title="关闭"></a>
+                <a class="close" @click="show = false" title="关闭"></a>
             </div>
         </div>
         <div class="resizeL"></div>

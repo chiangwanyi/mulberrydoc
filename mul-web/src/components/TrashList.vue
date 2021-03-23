@@ -4,8 +4,7 @@
                 :data="data"
                 stripe
                 :row-style="{cursor: 'pointer'}"
-                @selection-change="handleSelectionChange"
-                @row-click="handleRowClick">
+                @selection-change="handleSelectionChange">
             <el-table-column type="selection">
             </el-table-column>
             <el-table-column
@@ -20,22 +19,12 @@
                 </template>
             </el-table-column>
             <el-table-column
-                    prop="name"
-                    sortable
-                    label="所属状态">
-                <template slot-scope="scope">
-                    <div class="list-item-cell">
-                        <p :class="{'skeleton': !ready}">{{scope.row.ownership === 0 ? '私有' : '公开'}}</p>
-                    </div>
-                </template>
-            </el-table-column>
-            <el-table-column
                     prop="updatedAt"
                     sortable
-                    label="最后修改时间">
+                    label="移除时间">
                 <template slot-scope="scope">
                     <div class="list-item-cell">
-                        <p :class="{'skeleton': !ready}">{{scope.row.updatedAt | dateFormatter}}</p>
+                        <p :class="{'skeleton': !ready}">{{scope.row.deletedAt | dateFormatter}}</p>
                     </div>
                 </template>
             </el-table-column>
@@ -55,12 +44,11 @@
 
 <script>
     export default {
-        name: "DocumentList",
+        name: "TrashList",
         data() {
             return {
                 icon: {
                     folder: require("../assets/folder.svg"),
-                    folderFavorite: require("../assets/folder-favorite.svg"),
                     doc: require("../assets/word.svg"),
                     chart: require("../assets/xchart.svg"),
                     markdown: require("../assets/ppt.svg")
@@ -71,9 +59,9 @@
             handleSelectionChange(val) {
                 this.$emit("selectItem", val);
             },
-            handleRowClick(val) {
-                this.$emit("clickItem", val)
-            },
+            // handleRowClick(val) {
+            //     this.$emit("clickItem", val)
+            // },
             getIcon(type) {
                 if (type === "folder") {
                     return this.icon.folder

@@ -1,6 +1,7 @@
 import axios from "axios";
 
 type folder = {
+    hash: string,
     parentHash: string;
     name: string;
 }
@@ -54,6 +55,27 @@ class DocumentsApi {
         })
     }
 
+    static updateFolder(folder: folder) {
+        return axios.patch(`/api/folder`, {
+            folder: folder
+        })
+    }
+
+    static updateFileAttr(hash: string, rwStatus: Number, ownership: number) {
+        return axios.post(`/api/file/attr`, {
+            hash: hash,
+            rw_status: rwStatus,
+            ownership: ownership
+        })
+    }
+
+    static updateFileName(hash: string, name: string) {
+        return axios.post(`/api/file/name`, {
+            hash: hash,
+            name: name
+        })
+    }
+
     /**
      * 创建文件
      * @param file 文件信息
@@ -61,6 +83,32 @@ class DocumentsApi {
     static createFile(file: file) {
         return axios.post(`/api/file`, {
             file: file
+        })
+    }
+
+    static queryDeletedFiles() {
+        return axios.get(`/api/trash`)
+    }
+
+    static removeItems(folders: Array<String>, files: Array<String>) {
+        return axios.post(`/api/documents/remove`, {
+            folders: folders,
+            files: files,
+        })
+    }
+
+    static moveItemsTo(toFolderHash: string, folders: Array<String>, files: Array<String>) {
+        return axios.post(`/api/documents/move`, {
+            toFolder: toFolderHash,
+            folders: folders,
+            files: files,
+        })
+    }
+
+    static recoveryItems(folders: Array<String>, files: Array<String>) {
+        return axios.post(`/api/documents/remove`, {
+            folders: folders,
+            files: files,
         })
     }
 }

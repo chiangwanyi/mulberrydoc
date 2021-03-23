@@ -127,25 +127,25 @@ public class FolderController
         return ResponseUtil.response(res, instance);
     }
 
-    /**
-     * 移除文件夹
-     *
-     * @param body    参数
-     * @param request HttpServletRequest
-     * @return 结果
-     */
-    @RequireLogin
-    @DeleteMapping("/folder")
-    public Object removeFolder(@RequestBody Map<String, Object> body, HttpServletRequest request)
-    {
-        LOG.info("【FolderController】移除文件夹");
-        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
-        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
-        LOG.info("【FolderController】用户ID:{}", userId);
-        Map<String, Object> obj = new HashMap<>();
-        obj.put("uid", userId);
-        obj.put("hash", body.get("hash"));
-        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "removeFolder", obj);
-        return ResponseUtil.response(res, instance);
-    }
+//    /**
+//     * 移除文件夹
+//     *
+//     * @param body    参数
+//     * @param request HttpServletRequest
+//     * @return 结果
+//     */
+//    @RequireLogin
+//    @DeleteMapping("/folder")
+//    public Object removeFolder(@RequestBody Map<String, Object> body, HttpServletRequest request)
+//    {
+//        LOG.info("【FolderController】移除文件夹");
+//        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
+//        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
+//        LOG.info("【FolderController】用户ID:{}", userId);
+//        Map<String, Object> obj = new HashMap<>();
+//        obj.put("uid", userId);
+//        obj.put("hash", body.get("hash"));
+//        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "removeFolder", obj);
+//        return ResponseUtil.response(res, instance);
+//    }
 }

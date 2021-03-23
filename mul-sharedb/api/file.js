@@ -32,12 +32,14 @@ class File {
                         },
                         doc_type
                     );
+                    break;
                 }
                 case "md": {
                     doc.create(
                         [{ insert: "Hi!", attributes: { author: 2 } }],
                         "rich-text"
                     );
+                    break;
                 }
             }
             callback(null);

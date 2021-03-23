@@ -4,7 +4,7 @@
             <div class="header">
                 <div style="display: flex;flex-grow: 1;justify-content: flex-start;align-items: center;">
                     <i class="el-icon-arrow-left" style="font-size: 20px;"></i>
-                    <p class="file-name" contenteditable="true">{{file.name}}</p>
+                    <p class="file-name">{{file.name}}</p>
                     <el-divider direction="vertical"></el-divider>
                     <div style="display: flex;align-items: center;">
                         <el-avatar size="small" v-for="user in members" :key="user.uid">{{user.avatar}}</el-avatar>
@@ -444,34 +444,34 @@
                 }
 
                 let map = Ot.stringsMap(oldValue, newValue);
-                console.log(map)
+                // console.log(map)
                 // TODO 需要保存原始数据以便撤销
                 let diff = Ot.completeDiff(map.aliasB, map.aliasA);
-                console.log(diff);
-                let flag = false;
-                for (let i = 0; i < diff.length; i++) {
-                    let op = diff[i];
-                    this.lock = true;
-                    if (op.i !== undefined) {
-                        for (let k = 0; k < op.i.length; k++) {
-                            let value = map.map.get(op.i.charAt(k));
-                            if (value !== undefined) {
-                                let element = DomUtil.createDom(value);
-                                if (!element.getAttribute("index").startsWith(`${this.user.id}-`)) {
-                                    flag = true;
-                                    let domList = document.querySelectorAll(`*[index='${element.getAttribute("index")}']`);
-                                    for (let j = 1; j < domList.length; j++) {
-                                        domList[j].removeAttribute("index");
-                                    }
-                                }
-                            }
-                        }
-                        if (flag) {
-                            this.lock = false;
-                            return;
-                        }
-                    }
-                }
+                // console.log(diff);
+                // let flag = false;
+                // for (let i = 0; i < diff.length; i++) {
+                //     let op = diff[i];
+                //     this.lock = true;
+                //     if (op.i !== undefined) {
+                //         for (let k = 0; k < op.i.length; k++) {
+                //             let value = map.map.get(op.i.charAt(k));
+                //             if (value !== undefined) {
+                //                 let element = DomUtil.createDom(value);
+                //                 if (!element.getAttribute("index").startsWith(`${this.user.id}-`)) {
+                //                     flag = true;
+                //                     let domList = document.querySelectorAll(`*[index='${element.getAttribute("index")}']`);
+                //                     for (let j = 1; j < domList.length; j++) {
+                //                         domList[j].removeAttribute("index");
+                //                     }
+                //                 }
+                //             }
+                //         }
+                //         if (flag) {
+                //             this.lock = false;
+                //             return;
+                //         }
+                //     }
+                // }
                 // 存在差异
                 if (diff.length !== 0) {
                     if (diff.length <= 3) {

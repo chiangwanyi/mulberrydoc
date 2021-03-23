@@ -4,6 +4,7 @@ import VueRouter, {RouteConfig} from "vue-router";
 import Home from "../views/Home.vue";
 import Authentication from "../views/Authentication.vue";
 import Documents from "../views/Documents.vue";
+import Trash from "../views/Trash.vue";
 
 import RichText from "../views/editor/RichText.vue";
 import Markdown from "../views/editor/Markdown.vue";
@@ -25,6 +26,11 @@ const routes: Array<RouteConfig> = [
         path: '/documents*',
         name: 'Documents',
         component: Documents,
+    },
+    {
+        path: '/trash',
+        name: 'Trash',
+        component: Trash,
     },
     {
         path: "/auth",

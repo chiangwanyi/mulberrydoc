@@ -12,6 +12,7 @@ import com.cqwu.jwy.mulberrydoc.documents.service.FileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -94,7 +95,6 @@ public class FileApi
     public HttpResponse queryFile(@RequestBody Map<String, Object> obj)
     {
         LOG.info("【查询文件】参数：{}", obj);
-        // 用户ID
         String hash = (String) obj.get(PARAM_FILE_HASH);
         if (StringUtils.isEmpty(hash))
         {
@@ -109,12 +109,6 @@ public class FileApi
                     .msg(FileConstant.QUERY_FILE_SUCCESS)
                     .data(file);
         }
-        catch (WebException e)
-        {
-            LOG.error("【查询文件】创建失败，{}，error:", e.getErrorMsg(), e);
-            return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
-                    .msg(e);
-        }
         catch (Exception e)
         {
             LOG.error("【查询文件】创建失败，error:", e);
@@ -123,4 +117,64 @@ public class FileApi
         }
     }
 
+    @PostMapping("updateFileAttr")
+    public HttpResponse updateFileAttr(@RequestBody Map<String, Object> obj)
+    {
+        String uid = (String) obj.get(PARAM_UID);
+        String hash = (String) obj.get(PARAM_FILE_HASH);
+        Integer rwStatus = (Integer) obj.get("rw_status");
+        Integer ownership = (Integer) obj.get("ownership");
+        try
+        {
+            fileService.updateFileAttr(uid, hash, rwStatus, ownership);
+            return HttpSerializer.success(instance);
+        }
+        catch (Exception e)
+        {
+            return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
+                    .msg(e);
+        }
+    }
+
+    @PostMapping("updateFileName")
+    public HttpResponse updateFileName(@RequestBody Map<String, Object> obj)
+    {
+        String uid = (String) obj.get(PARAM_UID);
+        String hash = (String) obj.get(PARAM_FILE_HASH);
+        String name = (String) obj.get("name");
+        try
+        {
+            fileService.updateFileName(uid, hash, name);
+            return HttpSerializer.success(instance);
+        }
+        catch (WebException e)
+        {
+            return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
+                    .msg(e);
+        }
+        catch (Exception e)
+        {
+            return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
+                    .msg(e);
+        }
+    }
+
+//    public HttpResponse checkFileName(@RequestBody Map<String, Object> obj) {
+//        String uid = (String) obj.get(PARAM_UID);
+//        String hash = (String) obj.get(PARAM_FILE_HASH);
+//        String name = (String) obj.get("name");
+//        try {
+//            File file = fileService.queryFile(hash);
+//            if (Objects.nonNull(file)) {
+//                fileService.isExistedFile(uid, file.getFolderHash(), file.getType(), name)
+//
+//            } else {
+//                return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
+//                        .msg("文件不存在");
+//            }
+//        } catch (Exception e) {
+//
+//        }
+//
+//    }
 }

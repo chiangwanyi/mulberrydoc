@@ -19,6 +19,7 @@ import com.cqwu.jwy.mulberrydoc.documents.service.FolderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -254,40 +255,56 @@ public class DocumentsApi
         }
     }
 
-    /**
-     * 移除文件夹
-     *
-     * @param obj 参数（UserId, FolderHash）
-     * @return HttpResponse
-     */
-    @PostMapping("removeFolder")
-    public HttpResponse removeFolder(@RequestBody Map<String, Object> obj)
+    @PostMapping("removeItems")
+    public HttpResponse removeItems(@RequestBody Map<String, Object> obj)
     {
-        LOG.info("【移除文件夹】参数：{}", obj);
-        String uid = (String) obj.get(PARAM_UID);
-        String hash = (String) obj.get(PARAM_HASH);
-        if (StringUtils.isEmpty(uid) || StringUtils.isEmpty(hash))
+        String uid = (String) obj.get("uid");
+        List<String> fileHashes = (List) obj.get("fileHashes");
+        List<String> folderHashes = (List) obj.get("folderHashes");
+        if (StringUtils.isEmpty(uid) || (CollectionUtils.isEmpty(fileHashes) && CollectionUtils.isEmpty(folderHashes)))
         {
-            LOG.warn("【移除文件夹】参数不完整，folderHash:{}", hash);
             return HttpSerializer.incompleteParamsFailed(instance);
         }
         try
         {
-            boolean res = folderService.removeFolder(uid, hash);
-            if (res)
+            for (String folderHash : folderHashes)
             {
-                return HttpSerializer.success(instance)
-                        .msg(FolderConstant.REMOVE_FOLDERS_SUCCESS);
+                folderService.removeFolder(uid, folderHash);
             }
-            else
-            {
-                return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
-                        .msg(FolderError.REMOVE_FOLDER_FAILED);
-            }
+            fileService.removeFile(uid, fileHashes);
+            return HttpSerializer.success(instance)
+                    .msg(FolderConstant.REMOVE_ITEM_SUCCESS);
         }
-        catch (WebException e)
+        catch (Exception e)
         {
-            LOG.error("【移除文件夹】移除文件夹时发生异常，error:", e);
+            return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
+                    .msg(e);
+        }
+    }
+
+    @PostMapping("moveItemsTo")
+    public HttpResponse moveItemsTo(@RequestBody Map<String, Object> obj)
+    {
+        String uid = (String) obj.get("uid");
+        String toFolderHash = (String) obj.get("toFolder");
+        List<String> files = (List) obj.get("files");
+        List<String> folders = (List) obj.get("folders");
+        if (StringUtils.isEmpty(uid) || StringUtils.isEmpty(toFolderHash))
+        {
+            return HttpSerializer.incompleteParamsFailed(instance);
+        }
+        try
+        {
+            fileService.moveFile(uid, toFolderHash, files);
+            folderService.moveFolder(uid, folders, toFolderHash);
+            return HttpSerializer.success(instance);
+        }
+        catch (WebException e) {
+            return HttpSerializer.failure(instance, HttpSerializer.STATUS_FORBIDDEN_FAILED)
+                    .msg(e);
+        }
+        catch (Exception e)
+        {
             return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
                     .msg(e);
         }
@@ -320,6 +337,54 @@ public class DocumentsApi
         catch (WebException e)
         {
             LOG.error("【获取文件夹路径】获取文件夹路径时发生异常，error:", e);
+            return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
+                    .msg(e);
+        }
+    }
+
+    @PostMapping("queryDeletedItems")
+    public HttpResponse queryDeletedItems(@RequestBody Map<String, Object> obj)
+    {
+        String uid = (String) obj.get(PARAM_UID);
+        if (StringUtils.isEmpty(uid))
+        {
+            return HttpSerializer.incompleteParamsFailed(instance);
+        }
+        try
+        {
+            List<File> files = fileService.queryDeletedFiles(uid);
+//            List<Folder> folders = folderService.queryDeletedFolders(uid);
+            Map<String, Object> data = new HashMap<>();
+            data.put("files", files);
+//            data.put("folders", folders);
+            return HttpSerializer.success(instance)
+                    .data(data);
+        }
+        catch (Exception e)
+        {
+            return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
+                    .msg(e);
+        }
+    }
+
+    public HttpResponse recovery(@RequestBody Map<String, Object> obj)
+    {
+        String uid = (String) obj.get(PARAM_UID);
+        if (StringUtils.isEmpty(uid))
+        {
+            return HttpSerializer.incompleteParamsFailed(instance);
+        }
+        List<String> folders = (List) obj.get("folders");
+        List<String> files = (List) obj.get("files");
+
+        try
+        {
+            folderService.recoveryFolder(uid, folders);
+//            fileService.recoveryFile(uid, files);
+            return HttpSerializer.success(instance);
+        }
+        catch (Exception e)
+        {
             return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
                     .msg(e);
         }

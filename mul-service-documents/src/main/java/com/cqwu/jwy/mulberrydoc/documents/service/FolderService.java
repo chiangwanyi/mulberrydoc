@@ -2,11 +2,12 @@ package com.cqwu.jwy.mulberrydoc.documents.service;
 
 import com.cqwu.jwy.mulberrydoc.common.exception.WebException;
 import com.cqwu.jwy.mulberrydoc.documents.dao.FolderDao;
+import com.cqwu.jwy.mulberrydoc.documents.pojo.File;
 import com.cqwu.jwy.mulberrydoc.documents.pojo.Folder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.*;
 
 @Service
 public class FolderService
@@ -88,5 +89,52 @@ public class FolderService
     public boolean removeFolder(String uid, String hash) throws WebException
     {
         return folderDao.removeFolder(uid, hash);
+    }
+
+    public List<Folder> queryDeletedFolders(String uid) throws WebException
+    {
+        return folderDao.queryDeletedFolders(uid);
+    }
+
+    public void recoveryFolder(String uid, List<String> folders)
+    {
+
+    }
+
+    public boolean moveFolder(String uid, List<String> folderHashes, String newParentFolder) throws WebException
+    {
+        List<Folder> folders = new ArrayList<>();
+        for (String hash : folderHashes)
+        {
+            Folder folder = queryFolderByHash(uid, hash);
+            if (Objects.nonNull(folder))
+            {
+                folders.add(folder);
+            }
+        }
+        // 移动到的文件夹是自己的父文件夹，不允许
+        if (folders.stream().map(Folder::getParentHash).distinct().anyMatch(hash -> Objects.equals(hash, newParentFolder)))
+        {
+            return false;
+        }
+        Map<String, Integer> counter = new HashMap<>();
+        for (Folder folder : folders)
+        {
+            String originName = folder.getName();
+            String name = originName;
+            while (folderDao.isExistedFolderName(uid, name, newParentFolder))
+            {
+                if (!counter.containsKey(originName))
+                {
+                    counter.put(originName, 1);
+                }
+                Integer count = counter.get(originName);
+                name = String.format("%s (%d)", originName, count);
+                counter.put(originName, count + 1);
+            }
+            folder.setName(name);
+            folderDao.moveFolder(uid, folder, newParentFolder);
+        }
+        return true;
     }
 }

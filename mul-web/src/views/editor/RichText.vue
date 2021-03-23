@@ -134,6 +134,17 @@
                                     let res = r.data;
                                     if (res.status === 200) {
                                         this.file = res.data;
+                                        // 文件私有或不存在
+                                        if (this.file === null || (this.file.ownership === 0 && this.file.uid !== this.user.id)) {
+                                            this.$alert('文档不存在或无权查看', '无权限', {
+                                                confirmButtonText: '确定',
+                                                callback: action => {
+                                                    this.loading.close();
+                                                    window.close();
+                                                }
+                                            });
+                                            return;
+                                        }
                                         this.connectServer();
                                     }
                                 })

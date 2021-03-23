@@ -11,16 +11,14 @@ import com.cqwu.jwy.mulberrydoc.documents.constant.FileError;
 import com.cqwu.jwy.mulberrydoc.documents.dao.FileDao;
 import com.cqwu.jwy.mulberrydoc.documents.dao.FolderDao;
 import com.cqwu.jwy.mulberrydoc.documents.pojo.File;
-import com.cqwu.jwy.mulberrydoc.documents.pojo.Folder;
 import com.cqwu.jwy.mulberrydoc.documents.util.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Service
 public class FileService
@@ -46,7 +44,7 @@ public class FileService
         String name = info.getName();
         String fileHash = FileUtil.generateFolderHash(uid, folderHash, type, name);
         // 判断文件是否存在
-        if (isExistedFile(uid, folderHash, type, name))
+        if (checkName(uid, folderHash, type, name))
         {
             throw new WebException(FileError.FILE_ALREADY_EXISTENT);
         }
@@ -104,13 +102,94 @@ public class FileService
      * @return 结果
      * @throws WebException 异常
      */
-    public File queryFile(String fileHash) throws WebException
+    public File queryFile(String fileHash)
     {
         return fileDao.queryFile(fileHash);
     }
 
+    public void removeFile(String uid, List<String> fileHashes)
+    {
+        Date date = DateUtil.nowDatetime();
+        for (String hash : fileHashes)
+        {
+            fileDao.removeFile(uid, hash, date);
+        }
+    }
+
     /**
-     * 判断文件是否存在
+     * 修改文件属性
+     *
+     * @param uid       所属用户ID
+     * @param hash      文件Hash
+     * @param rwStatus  文件读写状态
+     * @param ownership 文件所属状态
+     */
+    public void updateFileAttr(String uid, String hash, Integer rwStatus, Integer ownership)
+    {
+        fileDao.updateFileAttr(uid, hash, rwStatus, ownership, DateUtil.nowDatetime());
+    }
+
+    public void updateFileName(String uid, String hash, String name) throws Exception
+    {
+        File file = queryFile(hash);
+        if (Objects.nonNull(file))
+        {
+            if (!checkName(uid, file.getFolderHash(), file.getType(), name))
+            {
+                fileDao.updateFileName(uid, hash, name, DateUtil.nowDatetime());
+            }
+            else
+            {
+                throw new WebException("名称重复");
+            }
+        }
+        else
+        {
+            throw new Exception("文件不存在");
+        }
+    }
+
+    public List<File> queryDeletedFiles(String uid)
+    {
+        return fileDao.queryDeletedFiles(uid);
+    }
+
+    public void recoveryFile(String uid, List<String> files)
+    {
+    }
+
+    public void moveFile(String uid, String toFolderHash, List<String> fileHashes) throws WebException
+    {
+        List<File> files = fileHashes.stream()
+                .map(this::queryFile)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        List<String> folders = files.stream().map(File::getFolderHash).distinct().collect(Collectors.toList());
+        if (folders.contains(toFolderHash))
+        {
+            throw new WebException("有文件已经包含在该文件夹内，无法移动");
+        }
+        Map<String, Integer> counter = new HashMap<>();
+        files.forEach(file -> {
+            String originName = file.getName();
+            String name = originName;
+            while (checkName(uid, toFolderHash, file.getType(), name))
+            {
+                String key = String.format("%s:%s", file.getType(), originName);
+                if (!counter.containsKey(key))
+                {
+                    counter.put(key, 1);
+                }
+                Integer count = counter.get(key);
+                name = String.format("%s (%d)", originName, count);
+                counter.put(key, count + 1);
+            }
+            fileDao.moveFile(uid, file.getHash(), toFolderHash, name, DateUtil.nowDatetime());
+        });
+    }
+
+    /**
+     * 判断文件名称是否存在
      *
      * @param uid        用户ID
      * @param folderHash 文件Hash
@@ -118,7 +197,7 @@ public class FileService
      * @param name       文件名称
      * @return 结果
      */
-    public boolean isExistedFile(String uid, String folderHash, String type, String name)
+    public boolean checkName(String uid, String folderHash, String type, String name)
     {
         // 对应文件夹下的所有文件
         List<File> files = fileDao.queryFiles(uid, folderHash);

@@ -112,4 +112,41 @@ public class DocumentsController
         HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "querySubfolder", obj);
         return ResponseUtil.response(res, instance);
     }
+
+    @RequireLogin
+    @PostMapping("/documents/remove")
+    public Object removeItems(@RequestBody Map<String, Object> obj, HttpServletRequest request)
+    {
+        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
+        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
+        Map<String, Object> data = new HashMap<>();
+        data.put("uid", userId);
+        data.put("fileHashes", obj.get("files"));
+        data.put("folderHashes", obj.get("folders"));
+        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "removeItems", data);
+        return ResponseUtil.response(res, instance);
+    }
+
+    @RequireLogin
+    @GetMapping("/trash")
+    public Object queryDeletedFiles(HttpServletRequest request)
+    {
+        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
+        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
+        Map<String, Object> data = new HashMap<>();
+        data.put("uid", userId);
+        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "queryDeletedItems", data);
+        return ResponseUtil.response(res, instance);
+    }
+
+    @RequireLogin
+    @PostMapping("/documents/move")
+    public Object moveItemsTo(@RequestBody Map<String, Object> obj, HttpServletRequest request)
+    {
+        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
+        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
+        obj.put("uid", userId);
+        HttpResponse res = remote.post(ServiceConst.DOCUMENTS_SERVICE, "moveItemsTo", obj);
+        return ResponseUtil.response(res, instance);
+    }
 }

@@ -56,12 +56,14 @@ app.post("/api/file", (req, res) => {
     } else {
         File.createFile(type, file_hash, json1.type.uri, (err) => {
             if (err) {
+                console.log(err);
                 res.status(401).json({
                     status: 401,
                     msg: "创建文档失败",
                     data: err,
                 });
             } else {
+                console.log("success");
                 res.status(200).json({
                     status: 200,
                     msg: "创建文档成功",

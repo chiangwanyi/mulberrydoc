@@ -8,11 +8,7 @@ public enum FileOwnership
     /** 私有 */
     PRIVATE(0, "private"),
     /** 公开 */
-    PUBLIC(1, "public"),
-    /** 好友共享 */
-    FRIEND(2, "friend"),
-    /** 小组共享 */
-    GROUP(3, "group:%s");
+    PUBLIC(1, "public");
 
     private final Integer value;
     private final String name;
