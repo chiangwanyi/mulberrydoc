@@ -101,6 +101,9 @@ public interface FileDao
     @Update("update" + TABLE_NAME + "set name = '${arg2}', updated_at = #{arg3} where uid = #{arg0} and hash = #{arg1} and deleted_at is null")
     void updateFileName(String uid, String hash, String name, Date date);
 
-    @Update("update" + TABLE_NAME + "set folder_hash = '${arg2}', name = '${arg3}', updated_at = #{arg4} where uid = #{arg0} and hash = #{arg1} and deleted_at is null")
+    @Update("update" + TABLE_NAME + "set folder_hash = '${arg2}', name = '${arg3}', updated_at = #{arg4} where uid = #{arg0} and hash = #{arg1}")
     void moveFile(String uid, String hash, String toFolderHash, String newName, Date date);
+
+    @Update("update" + TABLE_NAME + "set updated_at = #{arg2}, deleted_at = null where uid = #{arg0} and hash = #{arg1} and deleted_at is not null")
+    void recoveryFile(String uid, String hash, Date date);
 }

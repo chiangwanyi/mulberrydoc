@@ -265,7 +265,7 @@ public class FolderDao
             List<Folder> allFolders = documents.getFolderList().stream()
                     .filter(folder -> Objects.isNull(folder.getDeletedAt()))
                     .collect(Collectors.toList());
-            // 如果父文件夹 Hash 是根目录别名，直接返回所有文件夹
+            // 如果父文件夹 Hash 是根目录别名
             if (Objects.equals(parentHash, DocumentsConstant.ROOT_FOLDER_HASH_ALIAS))
             {
                 return allFolders.stream().
@@ -422,39 +422,6 @@ public class FolderDao
             return documents.getFolderList().stream()
                     .filter(folder -> Objects.nonNull(folder.getDeletedAt()))
                     .collect(Collectors.toList());
-        }
-        throw new WebException(DocumentsError.DOCUMENTS_NON_EXISTENT);
-    }
-
-    public void recoveryFolder(String uid, List<String> folders) throws WebException
-    {
-        Documents documents = documentsDao.queryDocumentsByUserId(uid);
-        List<Folder> list = new ArrayList<>();
-        if (Objects.nonNull(documents))
-        {
-            documents.getFolderList().forEach(folder -> {
-                String hash = folder.getHash();
-                if (folders.contains(hash))
-                {
-                    list.add(folder);
-                }
-            });
-        }
-        for (Folder f : list)
-        {
-            Criteria criteria = new Criteria();
-            criteria.and(PARAM_UID).is(uid);
-            criteria.and("folderList.hash").is(f.getHash());
-            Query query = new Query(criteria);
-            Update update = new Update();
-            Date date = DateUtil.nowDatetime();
-            update.set("folderList.$.deletedAt", null);
-            UpdateResult result = mongo.updateMulti(query, update, Documents.class);
-            List<String> fileList = f.getFileList();
-            for (String fileHash : fileList)
-            {
-                fileDao.removeFile(uid, fileHash, date);
-            }
         }
         throw new WebException(DocumentsError.DOCUMENTS_NON_EXISTENT);
     }

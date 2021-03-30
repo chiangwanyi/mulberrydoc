@@ -299,7 +299,8 @@ public class DocumentsApi
             folderService.moveFolder(uid, folders, toFolderHash);
             return HttpSerializer.success(instance);
         }
-        catch (WebException e) {
+        catch (WebException e)
+        {
             return HttpSerializer.failure(instance, HttpSerializer.STATUS_FORBIDDEN_FAILED)
                     .msg(e);
         }
@@ -359,29 +360,6 @@ public class DocumentsApi
 //            data.put("folders", folders);
             return HttpSerializer.success(instance)
                     .data(data);
-        }
-        catch (Exception e)
-        {
-            return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
-                    .msg(e);
-        }
-    }
-
-    public HttpResponse recovery(@RequestBody Map<String, Object> obj)
-    {
-        String uid = (String) obj.get(PARAM_UID);
-        if (StringUtils.isEmpty(uid))
-        {
-            return HttpSerializer.incompleteParamsFailed(instance);
-        }
-        List<String> folders = (List) obj.get("folders");
-        List<String> files = (List) obj.get("files");
-
-        try
-        {
-            folderService.recoveryFolder(uid, folders);
-//            fileService.recoveryFile(uid, files);
-            return HttpSerializer.success(instance);
         }
         catch (Exception e)
         {

@@ -96,12 +96,7 @@ public class FolderService
         return folderDao.queryDeletedFolders(uid);
     }
 
-    public void recoveryFolder(String uid, List<String> folders)
-    {
-
-    }
-
-    public boolean moveFolder(String uid, List<String> folderHashes, String newParentFolder) throws WebException
+    public void moveFolder(String uid, List<String> folderHashes, String newParentFolder) throws WebException
     {
         List<Folder> folders = new ArrayList<>();
         for (String hash : folderHashes)
@@ -115,7 +110,7 @@ public class FolderService
         // 移动到的文件夹是自己的父文件夹，不允许
         if (folders.stream().map(Folder::getParentHash).distinct().anyMatch(hash -> Objects.equals(hash, newParentFolder)))
         {
-            return false;
+            throw new WebException("有文件夹已经包含在该文件夹内，无法移动");
         }
         Map<String, Integer> counter = new HashMap<>();
         for (Folder folder : folders)
@@ -135,6 +130,5 @@ public class FolderService
             folder.setName(name);
             folderDao.moveFolder(uid, folder, newParentFolder);
         }
-        return true;
     }
 }

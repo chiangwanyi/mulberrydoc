@@ -7,10 +7,13 @@ import com.cqwu.jwy.mulberrydoc.common.serializer.HttpSerializer;
 import com.cqwu.jwy.mulberrydoc.common.serializer.response.HttpResponse;
 import com.cqwu.jwy.mulberrydoc.common.util.DateUtil;
 import com.cqwu.jwy.mulberrydoc.common.util.HttpURLConnectionUtil;
+import com.cqwu.jwy.mulberrydoc.documents.constant.DocumentsConstant;
 import com.cqwu.jwy.mulberrydoc.documents.constant.FileError;
 import com.cqwu.jwy.mulberrydoc.documents.dao.FileDao;
 import com.cqwu.jwy.mulberrydoc.documents.dao.FolderDao;
+import com.cqwu.jwy.mulberrydoc.documents.pojo.Documents;
 import com.cqwu.jwy.mulberrydoc.documents.pojo.File;
+import com.cqwu.jwy.mulberrydoc.documents.pojo.Folder;
 import com.cqwu.jwy.mulberrydoc.documents.util.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -154,8 +157,18 @@ public class FileService
         return fileDao.queryDeletedFiles(uid);
     }
 
-    public void recoveryFile(String uid, List<String> files)
+    public void recoveryFile(String uid, List<String> files) throws WebException
     {
+        List<Folder> folders = folderDao.querySubfolder(uid, DocumentsConstant.ROOT_FOLDER_HASH_ALIAS);
+        Optional<Folder> opt = folders.stream()
+                .filter(folder -> Objects.equals(folder.getName(), DocumentsConstant.RECOVERY_FOLDER))
+                .findFirst();
+        Folder recoveryFolder = opt.isPresent() ? opt.get() : folderDao.createFolder(uid, DocumentsConstant.RECOVERY_FOLDER, DocumentsConstant.ROOT_FOLDER_HASH_ALIAS);
+        moveFile(uid, recoveryFolder.getHash(), files);
+        for (String hash : files)
+        {
+            fileDao.recoveryFile(uid, hash, DateUtil.nowDatetime());
+        }
     }
 
     public void moveFile(String uid, String toFolderHash, List<String> fileHashes) throws WebException

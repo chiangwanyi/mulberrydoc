@@ -159,6 +159,26 @@ public class FileApi
         }
     }
 
+    public HttpResponse recovery(@RequestBody Map<String, Object> obj)
+    {
+        String uid = (String) obj.get(PARAM_UID);
+        if (StringUtils.isEmpty(uid))
+        {
+            return HttpSerializer.incompleteParamsFailed(instance);
+        }
+        List<String> files = (List) obj.get("files");
+
+        try
+        {
+            fileService.recoveryFile(uid, files);
+            return HttpSerializer.success(instance);
+        }
+        catch (Exception e)
+        {
+            return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
+                    .msg(e);
+        }
+    }
 //    public HttpResponse checkFileName(@RequestBody Map<String, Object> obj) {
 //        String uid = (String) obj.get(PARAM_UID);
 //        String hash = (String) obj.get(PARAM_FILE_HASH);
