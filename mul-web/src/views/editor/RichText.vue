@@ -40,7 +40,7 @@
             connectServer() {
                 // 连接服务
                 this.socket = new ReconnectingWebSocket(
-                    `ws://192.168.31.123:9003`
+                    `ws://localhost:9003`
                 );
                 this.socket.addEventListener("close", () => {
                     console.error("文档数据库服务器连接丢失");

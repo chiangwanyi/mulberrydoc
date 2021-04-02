@@ -401,7 +401,7 @@
                         this.editor = new Editor("#container", editorOptions, quillOptions);
                         this.editor.on(EditorEvents.editorTextChanged, this.onEditorTextChanged);
                         // 连接文档数据库
-                        this.editor.syncThroughWebsocket("ws://192.168.31.123:9003", this.type, this.hash);
+                        this.editor.syncThroughWebsocket("ws://localhost:9003", this.type, this.hash);
                         this.socket = this.editor.synchronizer.socket;
                         this.doc = this.editor.synchronizer.doc;
                         this.timeAxisEditor = this.editor.synchronizer.connection;
