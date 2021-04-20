@@ -46,6 +46,9 @@ app.post("/api/file", (req, res) => {
     let type = body.file.type;
     // 文件Hash
     let file_hash = body.file.hash;
+    // 文件初始值
+    let content = body.content;
+    let uid = body.uid;
     let key = body.key;
     if (key !== config.key) {
         res.status(401).json({
@@ -54,7 +57,7 @@ app.post("/api/file", (req, res) => {
             data: {},
         });
     } else {
-        File.createFile(type, file_hash, json1.type.uri, (err) => {
+        File.createFile(type, parseInt(uid), file_hash, json1.type.uri, content, (err) => {
             if (err) {
                 console.log(err);
                 res.status(401).json({
@@ -74,6 +77,40 @@ app.post("/api/file", (req, res) => {
     }
 });
 
+app.post("/api/download", (req, res) => {
+    let body = req.body;
+    // 文件类型
+    let type = body.type;
+    // 文件Hash
+    let file_hash = body.hash;
+    let key = body.key;
+    if (key !== config.key) {
+        res.status(401).json({
+            status: 501,
+            msg: "无权限",
+            data: {},
+        });
+    } else {
+        File.downloadFile(type, file_hash, (err, content) => {
+            if (err) {
+                console.log(err);
+                res.status(401).json({
+                    status: 401,
+                    msg: "读取文档内容失败",
+                    data: err,
+                });
+            } else {
+                console.log("success");
+                res.status(200).json({
+                    status: 200,
+                    msg: "读取文档内容成功",
+                    data: { content: content },
+                });
+            }
+        })
+    }
+})
+
 // 创建 Websocket 服务，监听连接
 const wss = new WebSocket.Server({ noServer: true });
 
@@ -91,17 +128,4 @@ server.on("upgrade", (request, socket, head) => {
     wss.handleUpgrade(request, socket, head, function done(ws) {
         wss.emit("connection", ws);
     });
-    // Auth.authenticate(request, (err) => {
-    //     if (err) {
-    //         console.log("身份认证失败");
-    //         socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
-    //         socket.destroy();
-    //         return;
-    //     } else {
-    //         console.log("身份认证成功");
-    //         wss.handleUpgrade(request, socket, head, function done(ws) {
-    //             wss.emit("connection", ws);
-    //         });
-    //     }
-    // });
 });

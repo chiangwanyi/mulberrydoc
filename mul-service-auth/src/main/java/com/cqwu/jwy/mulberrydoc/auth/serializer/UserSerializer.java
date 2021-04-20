@@ -27,6 +27,7 @@ public final class UserSerializer
         Map<String, Object> data = new HashMap<>();
         data.put("id", user.getId());
         data.put("username", user.getUsername());
+        data.put("avatar", user.getAvatar());
         data.put("createdAt", user.getCreatedAt());
         return data;
     }

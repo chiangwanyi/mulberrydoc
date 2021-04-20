@@ -8,114 +8,101 @@ import java.util.*;
 /**
  * HTTP Response
  */
-public class HttpResponse
-{
-    /** 状态码 */
+public class HttpResponse {
+    /**
+     * 状态码
+     */
     private int status;
-    /** 消息 */
+    /**
+     * 消息
+     */
     private Object msg;
-    /** 数据 */
+    /**
+     * 数据
+     */
     private Object data;
-    /** 服务信息 */
+    /**
+     * 服务信息
+     */
     private Set<Object> instances;
 
-    public HttpResponse()
-    {
+    public HttpResponse() {
         this.instances = new HashSet<>();
     }
 
-    public HttpResponse status(int status)
-    {
+    public HttpResponse status(int status) {
         this.status = status;
         return this;
     }
 
-    public HttpResponse msg(Object msg)
-    {
-        if (msg instanceof WebException)
-        {
+    public HttpResponse msg(Object msg) {
+        if (msg instanceof WebException) {
             WebException exception = (WebException) msg;
             Map<String, Object> data = new HashMap<>();
-            data.put("code", exception.getErrorMsg().getCode());
+            data.put("code", Objects.nonNull(exception.getErrorMsg()) ? exception.getErrorMsg().getCode() : 0);
             data.put("message", exception.getMessage());
             this.msg = data;
-        }
-        else if (msg instanceof ErrorMsg)
-        {
+        } else if (msg instanceof ErrorMsg) {
             Map<String, Object> data = new HashMap<>();
             ErrorMsg errorMsg = (ErrorMsg) msg;
             data.put("code", errorMsg.getCode());
             data.put("message", errorMsg.getMessage());
             this.msg = data;
-        }
-        else
-        {
+        } else {
             this.msg = msg;
         }
         return this;
     }
 
-    public HttpResponse data(Object data)
-    {
+    public HttpResponse data(Object data) {
         this.data = data;
         return this;
     }
 
-    public HttpResponse instances(Object instance)
-    {
+    public HttpResponse instances(Object instance) {
         this.instances.add(instance);
         return this;
     }
 
-    public HttpResponse instances(Collection<Object> instances)
-    {
+    public HttpResponse instances(Collection<Object> instances) {
         this.instances.addAll(instances);
         return this;
     }
 
-    public int getStatus()
-    {
+    public int getStatus() {
         return status;
     }
 
-    public Object getMsg()
-    {
+    public Object getMsg() {
         return msg;
     }
 
-    public Object getData()
-    {
+    public Object getData() {
         return data;
     }
 
-    public Set<Object> getInstances()
-    {
+    public Set<Object> getInstances() {
         return instances;
     }
 
-    public void setStatus(int status)
-    {
+    public void setStatus(int status) {
         this.status = status;
     }
 
-    public void setMsg(Object msg)
-    {
+    public void setMsg(Object msg) {
         this.msg = msg;
     }
 
-    public void setData(Object data)
-    {
+    public void setData(Object data) {
         this.data = data;
     }
 
-    public void setInstances(Set<Object> instances)
-    {
+    public void setInstances(Set<Object> instances) {
         this.instances = instances;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "HttpResponse{" +
                 "status=" + status +
                 ", msg=" + msg +

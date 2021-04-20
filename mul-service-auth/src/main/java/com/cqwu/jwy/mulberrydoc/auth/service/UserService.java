@@ -21,8 +21,7 @@ import java.util.Set;
  * 用户服务类
  */
 @Service
-public class UserService
-{
+public class UserService {
     private static final Logger LOG = LoggerFactory.getLogger(UserService.class);
     @Autowired
     private UserDao userDao;
@@ -31,7 +30,9 @@ public class UserService
     @Autowired
     private IdUtil idUtil;
 
-    /** 重复出现的用户名 */
+    /**
+     * 重复出现的用户名
+     */
     private final Set<String> duplicateUsername = new HashSet<>();
 
     /**
@@ -41,17 +42,14 @@ public class UserService
      * @return 用户实例
      * @throws Exception 异常
      */
-    public User createUser(User user) throws Exception
-    {
+    public User createUser(User user) throws Exception {
         // 判断用户名是否在 缓存 中重复
-        if (duplicateUsername.contains(user.getUsername()))
-        {
+        if (duplicateUsername.contains(user.getUsername())) {
             LOG.warn("用户名: {} 已在缓存中出现", user.getUsername());
             throw new WebException(AuthError.USERNAME_CONFLICT);
         }
         // 判断用户名是否在 数据库 中重复
-        if (Objects.nonNull(userDao.queryUserByUsername(user.getUsername())))
-        {
+        if (Objects.nonNull(userDao.queryUserByUsername(user.getUsername()))) {
             LOG.warn("用户名: {} 已在数据库中出现", user.getUsername());
             duplicateUsername.add(user.getUsername());
             throw new WebException(AuthError.USERNAME_CONFLICT);
@@ -71,12 +69,14 @@ public class UserService
      * @param id 用户ID
      * @return 结果
      */
-    public User queryUserById(String id)
-    {
-        if (StringUtils.isEmpty(id))
-        {
+    public User queryUserById(String id) {
+        if (StringUtils.isEmpty(id)) {
             return null;
         }
         return userDao.queryUserById(id);
+    }
+
+    public void updateAvatar(String id, String avatar) {
+        userDao.updateAvatar(id, avatar, DateUtil.nowDatetime());
     }
 }

@@ -1,10 +1,7 @@
 package com.cqwu.jwy.mulberrydoc.documents.dao;
 
 import com.cqwu.jwy.mulberrydoc.documents.pojo.File;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 import java.util.Date;
 import java.util.List;
@@ -62,6 +59,9 @@ public interface FileDao
     @Select("select" + SELECT_SQL + "from" + TABLE_NAME + "where hash = #{hash} and deleted_at is null")
     File queryFile(String hash);
 
+    @Select("select" + SELECT_SQL + "from" + TABLE_NAME + "where hash = #{hash} and deleted_at is not null")
+    File queryDeletedFile(String hash);
+
     /**
      * 查询用户指定文件夹的所有文件
      *
@@ -106,4 +106,10 @@ public interface FileDao
 
     @Update("update" + TABLE_NAME + "set updated_at = #{arg2}, deleted_at = null where uid = #{arg0} and hash = #{arg1} and deleted_at is not null")
     void recoveryFile(String uid, String hash, Date date);
+
+    @Delete("delete from"+ TABLE_NAME + "where uid = #{arg0} and hash = #{arg1}")
+    void deletedFile(String uid, String hash);
+
+    @Update("update" + TABLE_NAME + "set updated_at = #{arg1} where hash = #{arg0}")
+    void writeFile(String hash, Date date);
 }

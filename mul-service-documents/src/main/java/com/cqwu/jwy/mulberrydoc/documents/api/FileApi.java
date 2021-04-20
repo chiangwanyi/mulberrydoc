@@ -14,17 +14,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 @RestController
-public class FileApi
-{
+public class FileApi {
     private static final Logger LOG = LoggerFactory.getLogger(FileApi.class);
     private static final String PARAM_UID = "uid";
     private static final String PARAM_FILE = "file";
@@ -42,44 +43,66 @@ public class FileApi
      * @return HttpResponse
      */
     @PostMapping("createFile")
-    public HttpResponse createFile(@RequestBody Map<String, Object> obj)
-    {
+    public HttpResponse createFile(@RequestBody Map<String, Object> obj) {
         LOG.info("【创建文件】参数：{}", obj);
         // 用户ID
         String uid = (String) obj.get(PARAM_UID);
         // 待创建的文件
         File info = PojoGenerator.generate(obj.get(PARAM_FILE), File.class);
+        // 初始化内容
+        String content = (String) obj.get("content");
 
-        if (StringUtils.isEmpty(uid) || Objects.isNull(info))
-        {
+        if (StringUtils.isEmpty(uid) || Objects.isNull(info)) {
             LOG.warn("【创建文件】参数不完整");
             return HttpSerializer.incompleteParamsFailed(instance);
         }
 
         Map<String, List<String>> errorMsg = Validator.verify(info, File.class);
         // 校验失败
-        if (!errorMsg.isEmpty())
-        {
+        if (!errorMsg.isEmpty()) {
             LOG.warn("【创建文件夹】校验字段不通过");
             return HttpSerializer.invalidParamsFailed(instance, errorMsg);
         }
 
-        try
-        {
-            File file = fileService.createFile(uid, info);
+        try {
+            File file = fileService.createFile(uid, info, content);
             return HttpSerializer.success(instance)
                     .msg(FileConstant.CREATE_FILE_SUCCESS)
                     .data(file);
-        }
-        catch (WebException e)
-        {
+        } catch (WebException e) {
             LOG.error("【创建文件】创建失败，{}，error:", e.getErrorMsg(), e);
             return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
                     .msg(e);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             LOG.error("【创建文件】创建失败，error:", e);
+            return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
+                    .msg(e);
+        }
+    }
+
+    @PostMapping("downloadFile")
+    public HttpResponse downloadFile(@RequestBody Map<String, Object> obj) {
+        try {
+            String hash = (String) obj.get("hash");
+            File file = fileService.queryFile(hash);
+            if (Objects.isNull(file)) {
+                return HttpSerializer.failure(instance, HttpSerializer.STATUS_VALID_FAILED)
+                        .msg("文件不存在或已被移除");
+            }
+            String content = fileService.downloadFile(hash, file.getType());
+            Map<String, String> data = new HashMap<>();
+            data.put("name", file.getName());
+            data.put("content", content);
+            String type = null;
+            if (Objects.equals(file.getType(), "doc")) {
+                type = ".rc";
+            } else if (Objects.equals(file.getType(), "md")) {
+                type = ".md";
+            }
+            data.put("type", type);
+            return HttpSerializer.success(instance)
+                    .data(data);
+        } catch (Exception e) {
             return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
                     .msg(e);
         }
@@ -92,25 +115,20 @@ public class FileApi
      * @return 结果
      */
     @PostMapping("queryFile")
-    public HttpResponse queryFile(@RequestBody Map<String, Object> obj)
-    {
+    public HttpResponse queryFile(@RequestBody Map<String, Object> obj) {
         LOG.info("【查询文件】参数：{}", obj);
         String hash = (String) obj.get(PARAM_FILE_HASH);
-        if (StringUtils.isEmpty(hash))
-        {
+        if (StringUtils.isEmpty(hash)) {
             LOG.warn("【查询文件】参数不完整");
             return HttpSerializer.incompleteParamsFailed(instance);
         }
 
-        try
-        {
+        try {
             File file = fileService.queryFile(hash);
             return HttpSerializer.success(instance)
                     .msg(FileConstant.QUERY_FILE_SUCCESS)
                     .data(file);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             LOG.error("【查询文件】创建失败，error:", e);
             return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
                     .msg(e);
@@ -118,63 +136,70 @@ public class FileApi
     }
 
     @PostMapping("updateFileAttr")
-    public HttpResponse updateFileAttr(@RequestBody Map<String, Object> obj)
-    {
+    public HttpResponse updateFileAttr(@RequestBody Map<String, Object> obj) {
         String uid = (String) obj.get(PARAM_UID);
         String hash = (String) obj.get(PARAM_FILE_HASH);
         Integer rwStatus = (Integer) obj.get("rw_status");
         Integer ownership = (Integer) obj.get("ownership");
-        try
-        {
+        try {
             fileService.updateFileAttr(uid, hash, rwStatus, ownership);
             return HttpSerializer.success(instance);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
                     .msg(e);
         }
     }
 
     @PostMapping("updateFileName")
-    public HttpResponse updateFileName(@RequestBody Map<String, Object> obj)
-    {
+    public HttpResponse updateFileName(@RequestBody Map<String, Object> obj) {
         String uid = (String) obj.get(PARAM_UID);
         String hash = (String) obj.get(PARAM_FILE_HASH);
         String name = (String) obj.get("name");
-        try
-        {
+        try {
             fileService.updateFileName(uid, hash, name);
             return HttpSerializer.success(instance);
-        }
-        catch (WebException e)
-        {
+        } catch (WebException e) {
             return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST)
                     .msg(e);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
                     .msg(e);
         }
     }
 
-    public HttpResponse recovery(@RequestBody Map<String, Object> obj)
-    {
+    @PostMapping("writeFile")
+    public HttpResponse writeFile(@RequestBody String hash) {
+        fileService.writeFile(hash);
+        return HttpSerializer.success(instance);
+    }
+
+    @PostMapping("recoveryFile")
+    public HttpResponse recoveryFile(@RequestBody Map<String, Object> obj) {
         String uid = (String) obj.get(PARAM_UID);
-        if (StringUtils.isEmpty(uid))
-        {
+        if (StringUtils.isEmpty(uid)) {
             return HttpSerializer.incompleteParamsFailed(instance);
         }
         List<String> files = (List) obj.get("files");
-
-        try
-        {
+        try {
             fileService.recoveryFile(uid, files);
             return HttpSerializer.success(instance);
+        } catch (Exception e) {
+            return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
+                    .msg(e);
         }
-        catch (Exception e)
-        {
+    }
+
+    @PostMapping("deleteFile")
+    public HttpResponse deleteFile(@RequestBody Map<String, Object> obj) {
+        String uid = (String) obj.get(PARAM_UID);
+        if (StringUtils.isEmpty(uid)) {
+            return HttpSerializer.incompleteParamsFailed(instance);
+        }
+        List<String> files = (List) obj.get("files");
+        try {
+            fileService.deleteFile(uid, files);
+            return HttpSerializer.success(instance);
+        } catch (Exception e) {
             return HttpSerializer.failure(instance, HttpSerializer.INTERNAL_SERVER_ERROR)
                     .msg(e);
         }

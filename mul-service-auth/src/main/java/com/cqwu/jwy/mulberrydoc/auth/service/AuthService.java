@@ -7,19 +7,25 @@ import com.cqwu.jwy.mulberrydoc.auth.dao.UserDao;
 import com.cqwu.jwy.mulberrydoc.auth.pojo.User;
 import com.cqwu.jwy.mulberrydoc.auth.util.SecretUtil;
 import com.cqwu.jwy.mulberrydoc.common.util.CodecUtil;
+import com.mysql.cj.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.Cookie;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
-public class AuthService
-{
-    /** LOG */
+public class AuthService {
+    /**
+     * LOG
+     */
     private static final Logger LOG = LoggerFactory.getLogger(AuthService.class);
     @Autowired
     private UserDao userDao;
@@ -38,16 +44,13 @@ public class AuthService
      * @param info 用户登录信息
      * @return Cookie
      */
-    public Cookie login(User info)
-    {
+    public Cookie login(User info) {
         User user = userDao.queryUserByUsername(info.getUsername());
         // 判断用户是否存在，是否已经移除
-        if (Objects.nonNull(user) && Objects.isNull(user.getDeletedAt()))
-        {
+        if (Objects.nonNull(user) && Objects.isNull(user.getDeletedAt())) {
             String pwd = secretUtil.generatePassword(info.getPassword(), info.getUsername());
             // 校验密码
-            if (user.getPassword().equals(pwd))
-            {
+            if (user.getPassword().equals(pwd)) {
                 String sessionValue = SecretUtil.generateSessionValue(user.getUsername());
                 Cookie cookie = new Cookie(sessionConfig.getSessionName(), sessionValue);
                 cookie.setMaxAge(sessionConfig.getMaxAge());
@@ -60,5 +63,18 @@ public class AuthService
             }
         }
         return null;
+    }
+
+    public void logout(String uid) {
+        List<String> keys = new ArrayList<>(Objects.requireNonNull(redis.redisTemplate.keys("session:*")));
+        List<String> idList = redis.redisTemplate.opsForValue().multiGet(keys);
+        if (Objects.nonNull(idList)) {
+            for (int i = 0; i < idList.size(); i++) {
+                String id = idList.get(i);
+                if (Objects.equals(id, uid)) {
+                    redis.redisTemplate.delete(keys.get(i));
+                }
+            }
+        }
     }
 }

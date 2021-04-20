@@ -121,7 +121,7 @@
             },
             startConnection() {
                 return new Promise((resolve, reject) => {
-                    let socket = io("http://127.0.0.1:9100", {
+                    let socket = io(this.$store.state.addr.connection, {
                         reconnection: false
                     });
                     setTimeout(() => {

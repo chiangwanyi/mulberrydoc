@@ -3,6 +3,7 @@ package com.cqwu.jwy.mulberrydoc.auth.dao;
 import com.cqwu.jwy.mulberrydoc.auth.pojo.User;
 import org.apache.ibatis.annotations.*;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -17,16 +18,17 @@ public interface UserDao
     /** 列名-字段名 映射 */
     String USER_SELECT_SQL = " `id` id, "
             + "`username` username, "
+            + "`avatar` avatar, "
             + "`password` password, "
             + "`created_at` createdAt, "
             + "`updated_at` updatedAt, "
             + "`deleted_at` deletedAt ";
 
     /** 插入列 */
-    String USER_INSERT_COLUMN_SQL = " (id, username, password, created_at, updated_at) ";
+    String USER_INSERT_COLUMN_SQL = " (id, username, avatar, password, created_at, updated_at) ";
 
     /** 插入字段 */
-    String USER_INSERT_FILED_SQL = " (#{id}, #{username}, #{password}, #{createdAt}, #{updatedAt}) ";
+    String USER_INSERT_FILED_SQL = " (#{id}, #{username}, #{avatar}, #{password}, #{createdAt}, #{updatedAt}) ";
 
     /**
      * 查询所有【用户】
@@ -61,4 +63,7 @@ public interface UserDao
      */
     @Insert("insert into" + USER_TABLE_NAME + USER_INSERT_COLUMN_SQL + "values" + USER_INSERT_FILED_SQL)
     void insert(User user);
+
+    @Update("update" + USER_TABLE_NAME + "set avatar = #{arg1}, updated_at = #{arg2} where id = #{arg0} and deleted_at is null")
+    void updateAvatar(String id, String avatar, Date date);
 }

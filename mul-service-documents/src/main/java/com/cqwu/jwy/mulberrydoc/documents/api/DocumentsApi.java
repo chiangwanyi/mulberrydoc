@@ -295,7 +295,7 @@ public class DocumentsApi
         }
         try
         {
-            fileService.moveFile(uid, toFolderHash, files);
+            fileService.moveFile(uid, toFolderHash, files, false);
             folderService.moveFolder(uid, folders, toFolderHash);
             return HttpSerializer.success(instance);
         }

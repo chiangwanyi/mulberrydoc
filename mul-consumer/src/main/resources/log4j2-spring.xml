@@ -34,7 +34,7 @@
 
     <loggers>
         <root level="all" additivity="false">
-<!--            <appender-ref ref="Console"/>-->
+            <appender-ref ref="Console"/>
             <appender-ref ref="RollingFile"/>
         </root>
     </loggers>

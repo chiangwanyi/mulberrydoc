@@ -6,89 +6,97 @@ import com.cqwu.jwy.mulberrydoc.common.validator.Rule;
 import java.io.Serializable;
 import java.util.Date;
 
-public class User implements Serializable
-{
-    /** 用户 ID */
+public class User implements Serializable {
+    /**
+     * 用户 ID
+     */
     private String id;
-    /** 用户名 */
+    /**
+     * 用户名
+     */
     @Rule(name = "用户名", min = 1, max = 20)
     private String username;
-    /** 用户密码 */
+    private String avatar;
+    /**
+     * 用户密码
+     */
     @Rule(name = "密码", min = 8, max = 20)
     private String password;
-    /** 创建日期 */
+    /**
+     * 创建日期
+     */
     private Date createdAt;
-    /** 最后修改日期 */
+    /**
+     * 最后修改日期
+     */
     private Date updatedAt;
-    /** 移除日期 */
+    /**
+     * 移除日期
+     */
     private Date deletedAt;
 
-    public String getId()
-    {
+    public String getId() {
         return id;
     }
 
-    public void setId(String id)
-    {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public String getUsername()
-    {
+    public String getUsername() {
         return username;
     }
 
-    public void setUsername(String username)
-    {
+    public void setUsername(String username) {
         this.username = username;
     }
 
-    public String getPassword()
-    {
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    public String getPassword() {
         return password;
     }
 
-    public void setPassword(String password)
-    {
+    public void setPassword(String password) {
         this.password = password;
     }
 
-    public Date getCreatedAt()
-    {
+    public Date getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt)
-    {
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt()
-    {
+    public Date getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt)
-    {
+    public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    public Date getDeletedAt()
-    {
+    public Date getDeletedAt() {
         return deletedAt;
     }
 
-    public void setDeletedAt(Date deletedAt)
-    {
+    public void setDeletedAt(Date deletedAt) {
         this.deletedAt = deletedAt;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "User{" +
                 "id='" + id + '\'' +
                 ", username='" + username + '\'' +
+                ", avatar='" + avatar + '\'' +
                 ", password='" + password + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +

@@ -39,9 +39,7 @@
              */
             connectServer() {
                 // 连接服务
-                this.socket = new ReconnectingWebSocket(
-                    `ws://localhost:9003`
-                );
+                this.socket = new ReconnectingWebSocket(this.$store.state.addr.sharedb);
                 this.socket.addEventListener("close", () => {
                     console.error("文档数据库服务器连接丢失");
                     if (this.flag) {

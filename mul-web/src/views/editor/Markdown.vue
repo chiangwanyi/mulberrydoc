@@ -88,7 +88,8 @@
 </template>
 
 <script>
-    import {Editor, Quill} from "miks-collaborative-editor";
+    // import Quill from "quill";
+    import Editor from "miks-collaborative-editor";
     import EditorEvents from "miks-collaborative-editor/editor-events";
     import 'quill/dist/quill.snow.css'
     import AuthApi from "@/api/auth";
@@ -333,7 +334,7 @@
              */
             startConnection() {
                 return new Promise((resolve, reject) => {
-                    let socket = io("http://127.0.0.1:9100", {
+                    let socket = io(this.$store.state.addr.connection, {
                         reconnection: false
                     });
                     setTimeout(() => {
@@ -401,7 +402,7 @@
                         this.editor = new Editor("#container", editorOptions, quillOptions);
                         this.editor.on(EditorEvents.editorTextChanged, this.onEditorTextChanged);
                         // 连接文档数据库
-                        this.editor.syncThroughWebsocket("ws://localhost:9003", this.type, this.hash);
+                        this.editor.syncThroughWebsocket(this.$store.state.addr.sharedb, this.type, this.hash);
                         this.socket = this.editor.synchronizer.socket;
                         this.doc = this.editor.synchronizer.doc;
                         this.timeAxisEditor = this.editor.synchronizer.connection;

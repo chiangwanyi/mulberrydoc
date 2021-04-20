@@ -4,6 +4,9 @@
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/mul-connection/node_modules" />
+      <excludeFolder url="file://$MODULE_DIR$/mul-web-complete/node_modules" />
+      <excludeFolder url="file://$MODULE_DIR$/mul-web/node_modules" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

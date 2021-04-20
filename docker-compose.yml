@@ -194,6 +194,66 @@ services:
       - E:\mulberrydoc_docker\mul-gateway\config\application.yml:/application.yml
       - E:\mulberrydoc_docker\mul-gateway\logs\mul-gateway_12000:/logs/mul-gateway_12000
 
+  # 文档服务器 ShareDB
+  mul-sharedb-9003:
+    # 镜像
+    image: mulberrydoc/mul-sharedb:v1.0.0
+    # 容器名称
+    container_name: mul-sharedb-9003
+    # 网络
+    networks:
+      mulberrydoc:
+        ipv4_address: 172.40.1.40
+    # 暴露端口
+    ports:
+      - "9003:9003"
+    # 挂载点
+    volumes:
+      - E:\mulberrydoc_docker\mul-sharedb\config\default.js:/mul-sharedb/config/default.js
+    command: "npm run serve"
+
+  # 通信服务器 Connection
+  mul-connection-9100:
+    # 镜像
+    image: mulberrydoc/mul-connection:v1.0.1
+    # 容器名称
+    container_name: mul-connection-9100
+    # 网络
+    networks:
+      mulberrydoc:
+        ipv4_address: 172.40.1.41
+    # 暴露端口
+    ports:
+      - "9100:9100"
+    command: "npm run serve"
+
+  # 前端服务器 Web
+  mul-web-8081:
+    # 镜像
+    image: mulberrydoc/mul-web:v0.1.4
+    # 容器名称
+    container_name: mul-web-8081
+    # 网络
+    networks:
+      mulberrydoc:
+        ipv4_address: 172.40.1.42
+    # 暴露端口
+    ports:
+      - "8081:8081"
+
+  mul-nginx-8080:
+    image: nginx
+    container_name: mul-nginx-8080
+    # 网络
+    networks:
+      mulberrydoc:
+        ipv4_address: 172.40.1.50
+    ports:
+      - "8080:8080"
+    # 挂载点
+    volumes:
+      - E:\mulberrydoc_docker\mul-nginx\default.conf:/etc/nginx/conf.d/default.conf
+
 networks:
   mulberrydoc:
     ipam:

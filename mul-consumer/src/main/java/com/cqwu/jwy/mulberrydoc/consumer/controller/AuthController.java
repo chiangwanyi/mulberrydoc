@@ -14,21 +14,18 @@ import com.cqwu.jwy.mulberrydoc.consumer.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 import java.util.Objects;
 
 @RestController
-public class AuthController
-{
+public class AuthController {
     private static final Logger LOG = LoggerFactory.getLogger(AuthController.class);
     @Autowired
     private SessionConfig sessionConfig;
@@ -39,8 +36,7 @@ public class AuthController
     private RemoteConnector remote;
 
     @PostConstruct
-    public void init()
-    {
+    public void init() {
         remote = new RemoteConnector(restTemplate);
     }
 
@@ -50,8 +46,7 @@ public class AuthController
      * @return 结果
      */
     @GetMapping("/auth/ping")
-    public Object ping()
-    {
+    public Object ping() {
         HttpResponse res = remote.get(ServiceConst.AUTH_SERVICE, "ping");
         return ResponseUtil.response(res, instance);
     }
@@ -63,8 +58,7 @@ public class AuthController
      * @return 结果
      */
     @PostMapping("/auth/register")
-    public Object register(@RequestBody Object obj)
-    {
+    public Object register(@RequestBody Object obj) {
         HttpResponse res = remote.post(ServiceConst.AUTH_SERVICE, "register", obj);
         return ResponseUtil.response(res, instance);
     }
@@ -76,43 +70,40 @@ public class AuthController
      * @return 结果
      */
     @PostMapping("/auth/login")
-    public Object login(@RequestBody Object obj, HttpServletResponse servletResponse)
-    {
+    public Object login(@RequestBody Object obj, HttpServletResponse servletResponse) {
         JsonResponse res = remote.post(ServiceConst.AUTH_SERVICE, "login", obj, JsonResponse.class);
-        if (Objects.isNull(res) || Objects.isNull(res.getData()))
-        {
+        if (Objects.isNull(res) || Objects.isNull(res.getData())) {
             LOG.warn("登录后无返回结果");
             return HttpSerializer.internalError(instance, null);
         }
-        try
-        {
+        try {
             HttpResponse response = HttpSerializer.convert(res.getData().get(HttpSerializer.HTTP_RESPONSE_KEY));
             // 登录成功
-            if (Objects.nonNull(response) && Objects.equals(response.getStatus(), HttpSerializer.STATUS_OK))
-            {
+            if (Objects.nonNull(response) && Objects.equals(response.getStatus(), HttpSerializer.STATUS_OK)) {
                 // 保存登录信息
                 Cookie[] cookies = CookieSerializer.convert(res.getData().get(HttpSerializer.COOKIES_KEY));
-                if (Objects.nonNull(cookies) && cookies.length != 0)
-                {
-                    for (Cookie cookie : cookies)
-                    {
+                if (Objects.nonNull(cookies) && cookies.length != 0) {
+                    for (Cookie cookie : cookies) {
                         servletResponse.addCookie(cookie);
                     }
                 }
                 // 保存失败
-                else
-                {
+                else {
                     LOG.error("保存登录信息失败");
                     return HttpSerializer.internalError(instance, null);
                 }
             }
             return ResponseUtil.response(response, instance);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             LOG.error("登录失败，error:", e);
             return HttpSerializer.internalError(instance, e);
         }
+    }
+
+    @PostMapping("/auth/logout")
+    public Object logout(@RequestBody Map<String, Object> obj) {
+        HttpResponse res = remote.post(ServiceConst.AUTH_SERVICE, "logout", obj.get("uid"));
+        return ResponseUtil.response(res, instance);
     }
 
     /**
@@ -122,10 +113,25 @@ public class AuthController
      */
     @RequireLogin
     @GetMapping("/auth/profile")
-    public Object profile(HttpServletRequest request)
-    {
+    public Object profile(HttpServletRequest request) {
         String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
         HttpResponse res = remote.post(ServiceConst.AUTH_SERVICE, "profile", sessionValue);
+        return ResponseUtil.response(res, instance);
+    }
+
+    @RequireLogin
+    @PostMapping("/auth/avatar")
+    public Object updateAvatar(@RequestBody Map<String, Object> obj, HttpServletRequest request) {
+        String sessionValue = CookieUtil.getCookieValue(sessionConfig.getSessionName(), request.getCookies());
+        String userId = remote.post(ServiceConst.AUTH_SERVICE, "uid", sessionValue, String.class);
+        obj.put("id", userId);
+        HttpResponse res = remote.post(ServiceConst.AUTH_SERVICE, "updateUserAvatar", obj);
+        return ResponseUtil.response(res, instance);
+    }
+
+    @GetMapping("/auth/search/{uid}")
+    public Object queryUserById(@PathVariable String uid) {
+        HttpResponse res = remote.post(ServiceConst.AUTH_SERVICE, "queryUserById", uid);
         return ResponseUtil.response(res, instance);
     }
 }
