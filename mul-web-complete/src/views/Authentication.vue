@@ -50,7 +50,6 @@
                 :style="{ height: height, backgroundImage: `url(${img})` }"
             >
             </el-col>
-            
         </el-row>
         <el-dialog title="注册" :visible.sync="showRegisterDialog" width="30%">
             <el-form
@@ -96,6 +95,7 @@
 </template>
 
 <script>
+import DocumentsApi from "@/api/documents";
 import AuthApi from "../api/auth";
 
 export default {
@@ -109,19 +109,23 @@ export default {
             if (value.length < 1 || value.length > 20) {
                 return callback(new Error("用户名长度应该在 1 到 20 个字符"));
             }
-            callback(new Error("该用户名已被使用"));
-            // Auth.checkUser(this.registerInfo)
-            //     .then((res) => {
-            //         let data = res.data;
-            //         if (data.status === 200) {
-            //             callback();
-            //         } else {
-            //             return callback(new Error(`${data.msg}`));
-            //         }
-            //     })
-            //     .catch(() => {
-            //         return callback(new Error("未知错误"));
-            //     });
+            AuthApi.checkName(this.registerInfo)
+                .then((res) => {
+                    let data = res.data;
+                    console.log(data);
+                    if (data.status === 200) {
+                        if (data.data === false) {
+                            callback();
+                        } else {
+                            return callback(new Error(`该用户名已注册`));
+                        }
+                    } else {
+                        return callback(new Error(`内部错误`));
+                    }
+                })
+                .catch(() => {
+                    return callback(new Error("未知错误"));
+                });
         };
         // 校验 注册密码
         const validatePassword = (rule, value, callback) => {
@@ -210,6 +214,40 @@ export default {
                                 type: "success",
                             });
                             this.$router.push("/");
+                        } else {
+                            this.$message({
+                                message: `${res.msg.message}`,
+                                type: "error",
+                            });
+                        }
+                    });
+                } else {
+                    return false;
+                }
+            });
+        },
+
+        register() {
+            console.log("pass");
+            this.$refs["registerForm"].validate((valid) => {
+                if (valid) {
+                    this.onRegister = true;
+                    AuthApi.register(this.registerInfo).then((r) => {
+                        this.onRegister = false;
+                        const res = r.data;
+                        console.log(res);
+                        if (res.status === 200) {
+                            DocumentsApi.createDocuments(res.data.id).then(
+                                (r) => {
+                                    if (r.data.status === 200) {
+                                        this.$message({
+                                            message: `${res.msg}`,
+                                            type: "success",
+                                        });
+                                        this.$router.push("/");
+                                    }
+                                }
+                            );
                         } else {
                             this.$message({
                                 message: `${res.msg.message}`,

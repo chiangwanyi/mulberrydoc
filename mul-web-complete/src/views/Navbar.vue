@@ -118,7 +118,13 @@ export default {
                 cancelButtonText: "取消",
                 type: "warning",
             })
-                .then(() => {})
+                .then(() => {
+                    AuthApi.logout(this.user.id).then(r => {
+                        if (r.data.status === 200) {
+                            this.$router.push("/auth");
+                        }
+                    })
+                })
                 .catch(() => {});
         },
         showProfile() {

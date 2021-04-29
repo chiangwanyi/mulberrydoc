@@ -35,6 +35,12 @@ class AuthApi {
         });
     }
 
+    static logout(uid: number) {
+        return axios.post("/api/auth/logout", {
+            uid: uid
+        })
+    }
+
     /**
      * 获取用户信息
      */
@@ -50,6 +56,10 @@ class AuthApi {
 
     static queryUserById(id: number) {
         return axios.get(`/api/auth/search/${id}`)
+    }
+
+    static checkName(user: userInfo) {
+        return axios.get(`/api/auth/name/${user.username}`)
     }
 }
 

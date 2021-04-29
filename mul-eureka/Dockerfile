@@ -2,7 +2,7 @@ FROM java:8
 
 MAINTAINER <chiangwanyi>
 
-ADD target/mul-eureka-1.0.1.jar app.jar
+ADD target/mul-eureka-1.2.0.jar app.jar
 
 ADD src/main/resources/application.yml application.yml
 

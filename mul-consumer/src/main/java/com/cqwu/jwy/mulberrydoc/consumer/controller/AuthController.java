@@ -134,4 +134,10 @@ public class AuthController {
         HttpResponse res = remote.post(ServiceConst.AUTH_SERVICE, "queryUserById", uid);
         return ResponseUtil.response(res, instance);
     }
+
+    @GetMapping("/auth/name/{name}")
+    public Object checkName(@PathVariable String name) {
+        HttpResponse response = remote.post(ServiceConst.AUTH_SERVICE, "checkName", name);
+        return ResponseUtil.response(response, instance);
+    }
 }

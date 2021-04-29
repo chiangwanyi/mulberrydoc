@@ -19,7 +19,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <mulberrydoc.version>1.0.1</mulberrydoc.version>
+        <mulberrydoc.version>1.2.0</mulberrydoc.version>
         <spring.boot.version>2.2.2.RELEASE</spring.boot.version>
         <spring.cloud.version>Hoxton.SR1</spring.cloud.version>
         <mysql.version>8.0.15</mysql.version>

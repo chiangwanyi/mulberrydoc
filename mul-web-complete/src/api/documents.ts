@@ -13,6 +13,12 @@ type file = {
 }
 
 class DocumentsApi {
+    static createDocuments(uid:number){
+        return axios.post("/api/documents", {
+            uid: uid
+        })
+    }
+
     /**
      * 查询父文件夹下的所有子文件夹
      * @param folder_hash 文件夹Hash

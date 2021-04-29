@@ -224,4 +224,14 @@ public class AuthApi {
             return HttpSerializer.failure(instance, HttpSerializer.STATUS_BAD_REQUEST);
         }
     }
+
+    @PostMapping("checkName")
+    public HttpResponse checkName(@RequestBody String name) {
+        User user = userService.queryUserByName(name);
+        if (Objects.isNull(user)) {
+            return HttpSerializer.success(instance).data(false);
+        } else {
+            return HttpSerializer.success(instance).data(true);
+        }
+    }
 }

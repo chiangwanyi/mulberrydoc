@@ -59,6 +59,7 @@ public class UserService {
         user.setCreatedAt(DateUtil.nowDatetime());
         user.setUpdatedAt(user.getCreatedAt());
         user.setPassword(secretUtil.generatePassword(user.getPassword(), user.getUsername()));
+        user.setAvatar("http://giler.oss-cn-chengdu.aliyuncs.com/avatar/bot_13.png");
         userDao.insert(user);
         return user;
     }
@@ -78,5 +79,9 @@ public class UserService {
 
     public void updateAvatar(String id, String avatar) {
         userDao.updateAvatar(id, avatar, DateUtil.nowDatetime());
+    }
+
+    public User queryUserByName(String name) {
+        return userDao.queryUserByUsername(name);
     }
 }
