@@ -115,6 +115,8 @@ services:
         network_mode: bridge
 ```
 
+![img.png](doc/stacks.png)
+
 #### 准备数据表
 TODO
 
